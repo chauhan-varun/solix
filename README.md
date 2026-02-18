@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Peer-to-Peer Energy Trading Platform
+
+A **decentralized energy grid** built on **Ethereum Sepolia** where a single producer feeds surplus solar energy into the grid, and consumers purchase it — with the producer getting paid directly via smart contracts.
+
+> **Stack:** Next.js 14 · Solidity/Foundry · ESP32 IoT · MongoDB · RainbowKit/Wagmi
+
+---
+
+## End-to-End Flow
+
+```mermaid
+flowchart TD
+    subgraph IoT["🔌 ESP32 Smart Meter"]
+        A["Solar Panel Readings\n(production, consumption, surplus)"]
+    end
+
+    subgraph Server["🖥️ Next.js Server (Off-Chain)"]
+        B["/api/meter\n(receives ESP32 data)"]
+        C[("MongoDB\n(meter readings, profiles, analytics)")]
+    end
+
+    subgraph Frontend["🌐 Web App (Browser)"]
+        D["Producer Dashboard\n(live ESP32 data, surplus view)"]
+        E["Grid Dashboard\n(available energy, dynamic price)"]
+        F["Consumer View\n(buy energy from grid)"]
+        G["Trade History & Analytics"]
+    end
+
+    subgraph Blockchain["⛓️ Ethereum Sepolia (On-Chain)"]
+        H["EnergyTrading.sol"]
+        I["registerUser()"]
+        J["feedGrid()\n(producer pushes surplus to grid)"]
+        K["buyFromGrid()\n(consumer pays, ETH goes to producer)"]
+        L["getDynamicPrice()\n(supply vs demand pricing)"]
+        M[("Immutable Trade Records\n(viewable on Etherscan)")]
+    end
+
+    %% ESP32 to Server
+    A -- "HTTP POST every 5s\n(WiFi, same network)" --> B
+    B -- "Store readings" --> C
+    C -- "Fetch latest data" --> D
+
+    %% Producer flow
+    D -- "Producer clicks\n'Feed Grid'" --> J
+    I -- "Register as\nProducer / Consumer" --> H
+    J -- "Surplus energy\nadded to grid" --> H
+
+    %% Consumer flow
+    E -- "View grid supply\n& dynamic price" --> L
+    L --> H
+    F -- "Consumer clicks\n'Buy from Grid'" --> K
+    K -- "ETH payment\nProducer ← Consumer" --> H
+    H -- "Trade recorded" --> M
+
+    %% Display
+    M -- "Tx hash link to\nEtherscan" --> G
+    C -- "Charts & stats" --> G
+
+    %% Styling
+    style IoT fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style Server fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Frontend fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px
+    style Blockchain fill:#dcfce7,stroke:#22c55e,stroke-width:2px
+```
+
+### Flow Summary
+
+| Step | Action | Where |
+|------|--------|-------|
+| 1 | ESP32 smart meter sends solar readings every 5s | Off-chain (MongoDB) |
+| 2 | **Producer** connects wallet & registers | On-chain (Sepolia) |
+| 3 | Producer clicks **"Feed Grid"** → surplus enters the grid | On-chain (Sepolia) |
+| 4 | **Consumer** connects wallet & registers | On-chain (Sepolia) |
+| 5 | Consumer views grid supply & dynamic price | On-chain read |
+| 6 | Consumer clicks **"Buy from Grid"** → pays ETH | On-chain (Sepolia) |
+| 7 | **Producer gets paid** automatically via smart contract | On-chain (Sepolia) |
+| 8 | Trade recorded permanently → viewable on Etherscan | On-chain (Sepolia) |
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Layer | Technology |
+|-------|-----------|
+| Fullstack | Next.js 14 (App Router) |
+| Styling | Tailwind CSS |
+| Wallet | RainbowKit + Wagmi |
+| Database | MongoDB (Prisma) |
+| Blockchain | Solidity + Foundry |
+| Network | Ethereum Sepolia Testnet |
+| IoT | ESP32 (Arduino C++) |
+| Charts | Recharts |

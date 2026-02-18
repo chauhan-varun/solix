@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletAddress  String   @unique
+  name           String
+  role           String   // "producer" | "consumer" | "prosumer"
+  meterId        String?
+  solarCapacity  Float?
+  location       String?
+  nonce          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  meterReadings  MeterReading[]
+  notifications  Notification[]
+}
+
+model MeterReading {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  meterId       String
+  walletAddress String
+  production    Float    // Wh produced
+  consumption   Float    // Wh consumed
+  surplus       Float    // Wh surplus
+  timestamp     DateTime @default(now())
+
+  user          User     @relation(fields: [walletAddress], references: [walletAddress])
+
+  @@index([walletAddress, timestamp])
+  @@index([meterId])
+}
+
+model Notification {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletAddress String
+  type          String   // "trade" | "listing" | "system"
+  message       String
+  read          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [walletAddress], references: [walletAddress])
+
+  @@index([walletAddress])
+}

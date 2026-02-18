@@ -11,40 +11,40 @@
 
 ### 🏠 The Problem
 
-Imagine **Ravi** has solar panels on his roof. On a sunny afternoon, his panels produce **more electricity than he needs**. Right now, that extra energy either goes to waste or gets sold back to the grid at a very low price. Meanwhile, his neighbor **Priya** is paying full price to the electricity company.
+Imagine **Ravi** has solar panels on his roof. On a sunny afternoon, his panels produce **more electricity than he needs**. Right now, that extra energy either goes to waste or gets sold back to the utility at a very low price. Meanwhile, consumers like **Priya** are paying full price to the electricity company.
 
-**What if Ravi could sell his extra energy directly to Priya — at a fair price — with no middleman?**
+**What if Ravi could feed his surplus energy into a grid — and consumers like Priya could draw from it and pay Ravi directly, with no middleman?**
 
 ### ⚡ Our Solution
 
-We built a **decentralized marketplace** where:
+We built a **decentralized energy grid** where:
 
-1. **Ravi plugs in a smart meter** (ESP32 device) to his solar setup. The meter automatically reads how much energy he's producing and consuming — and sends this data to our platform every few seconds.
+1. **Ravi (the Producer)** plugs in a smart meter (ESP32 device) to his solar setup. The meter automatically reads how much energy he's producing and consuming — and sends this data to our platform every few seconds.
 
-2. Ravi opens our website, **connects his crypto wallet** (like MetaMask), and registers as a **Producer**.
+2. Ravi opens our website, **connects his crypto wallet** (like MetaMask), and registers as the **Producer**.
 
-3. The platform shows Ravi his **live production data** from the smart meter. He can see he has surplus energy. He clicks **"Sell Energy"** and lists 50 kWh at ₹4/kWh.
+3. The platform shows Ravi his **live production data** from the smart meter. He can see he has surplus energy. He clicks **"Feed Grid"** and his surplus electricity flows into the grid.
 
-4. **Priya** connects her wallet, registers as a **Consumer**, and opens the **Marketplace**. She sees Ravi's listing. The price might be slightly higher or lower depending on how much energy is available vs. how many people want it — this is our **dynamic pricing**.
+4. **Priya** (and other consumers) connect their wallets, register as **Consumers**, and open the **Grid Dashboard**. They can see the available energy in the grid — fed by Ravi's surplus. The price adjusts dynamically based on supply and demand — this is our **dynamic pricing**.
 
-5. Priya clicks **"Buy 20 kWh"**. A **smart contract on the Ethereum Sepolia blockchain** automatically:
-   - Checks that Ravi really has 20 kWh available
+5. Priya clicks **"Buy 20 kWh from Grid"**. A **smart contract on the Ethereum Sepolia blockchain** automatically:
+   - Checks that the grid has 20 kWh available (from Ravi's surplus)
    - Calculates the total price
-   - Transfers the crypto payment from Priya to Ravi
+   - Transfers the crypto payment from Priya to Ravi (the producer)
    - Records the entire trade permanently on the blockchain
 
-6. Both Ravi and Priya can see the trade in their **Transaction History** — with a link to the actual blockchain record. **No one can alter or fake this.**
+6. **Ravi gets paid automatically** every time a consumer purchases energy from the grid. Both Ravi and Priya can see the trade in their **Transaction History** — with a link to the actual blockchain record. **No one can alter or fake this.**
 
-7. The platform shows **Analytics** — how much energy was traded, price trends, production vs consumption charts.
+7. The platform shows **Analytics** — how much energy was traded, price trends, grid supply vs demand charts.
 
 ### 🔑 Why Blockchain?
 
 | Without Blockchain | With Blockchain |
 |---|---|
-| Need a company in the middle (takes fees) | Direct peer-to-peer, no middleman |
+| Need a utility company in the middle (takes fees) | Consumer pays producer directly via grid, no middleman |
 | Company can change records | Records are permanent & tamper-proof |
 | Trust the company | Trust the code (smart contract) |
-| Slow settlement (days) | Instant payment on trade |
+| Slow settlement (days) | Instant payment when consumer buys from grid |
 | Opaque pricing | Transparent, auditable pricing |
 
 ### 🔌 Why ESP32 / IoT?
@@ -57,32 +57,32 @@ The ESP32 acts as a **smart meter**. In a real deployment, it would be connected
 Step 1:  ESP32 smart meter powers on, connects to WiFi
          └─→ Starts sending energy readings every 5 seconds to our server
 
-Step 2:  Ravi opens the website
+Step 2:  Ravi (Producer) opens the website
          └─→ Clicks "Connect Wallet" → MetaMask popup → signs in
 
-Step 3:  Ravi registers as a "Producer"
-         └─→ Transaction sent to blockchain → user recorded permanently
+Step 3:  Ravi registers as the "Producer"
+         └─→ Transaction sent to blockchain → producer recorded permanently
 
 Step 4:  Ravi's dashboard shows live data from his ESP32 meter
          └─→ He sees: producing 4.2 kW, consuming 1.1 kW, surplus 3.1 kW
 
-Step 5:  Ravi clicks "Sell Energy"
-         └─→ Lists 50 kWh at 0.001 ETH/kWh
-         └─→ Listing stored on blockchain (transparent, can't be faked)
+Step 5:  Ravi clicks "Feed Grid"
+         └─→ His surplus energy (3.1 kW) is pushed into the grid
+         └─→ Grid supply updated on blockchain (transparent, can't be faked)
 
 Step 6:  Priya opens the website, connects wallet, registers as "Consumer"
-         └─→ Goes to Marketplace → sees Ravi's listing
+         └─→ Goes to Grid Dashboard → sees available energy in the grid
 
-Step 7:  Priya clicks "Buy 20 kWh"
+Step 7:  Priya clicks "Buy 20 kWh from Grid"
          └─→ Smart contract calculates: 20 × 0.001 = 0.02 ETH
-         └─→ 0.02 ETH transfers from Priya → Ravi (automatically)
+         └─→ 0.02 ETH transfers from Priya → Ravi (the producer) automatically
          └─→ Trade recorded on blockchain forever
 
-Step 8:  Both see the trade in their history
+Step 8:  Ravi gets paid! Both see the trade in their history
          └─→ Click the transaction hash → see it on Sepolia Etherscan
 
-Step 9:  Analytics page shows network-wide stats
-         └─→ Total energy traded, number of users, price trends
+Step 9:  Analytics page shows grid-wide stats
+         └─→ Total energy traded, grid supply, consumer demand, price trends
 ```
 
 ---
@@ -120,8 +120,8 @@ Step 9:  Analytics page shows network-wide stats
                   │            NEXT.JS APP (on your laptop)          │
                   │                                                   │
                   │  ┌─── FRONTEND (App Router) ──────────────────┐  │
-                  │  │ Landing · Dashboard · Marketplace           │  │
-                  │  │ List Energy · Trade History · Analytics      │  │
+                  │  │ Landing · Dashboard · Grid · Feed Grid         │  │
+                  │  │ Trade History · Analytics · Profile             │  │
                   │  │                                             │  │
                   │  │ Wagmi + RainbowKit (wallet connection)      │  │
                   │  └─────────────────────────────────────────────┘  │
@@ -129,7 +129,7 @@ Step 9:  Analytics page shows network-wide stats
                   │  ┌─── API ROUTES (/api/*) ─────────────────────┐  │
                   │  │ /api/meter        ← ESP32 pushes data here │  │
                   │  │ /api/auth/*       wallet sign-in + JWT      │  │
-                  │  │ /api/energy/*     listing CRUD              │  │
+                  │  │ /api/grid/*       grid status + feed/buy    │  │
                   │  │ /api/trades/*     trade records             │  │
                   │  │ /api/analytics/*  charts data               │  │
                   │  └─────────────────────────────────────────────┘  │
@@ -146,8 +146,8 @@ Step 9:  Analytics page shows network-wide stats
                   │                                                   │
                   │   EnergyTrading.sol (deployed contract)           │
                   │   ├── registerUser()                               │
-                  │   ├── listEnergy()                                 │
-                  │   ├── buyEnergy() — transfers Sepolia ETH          │
+                  │   ├── feedGrid() — producer pushes energy to grid   │
+                  │   ├── buyFromGrid() — consumer pays producer        │
                   │   ├── getDynamicPrice()                            │
                   │   └── All trades visible on sepolia.etherscan.io  │
                   └───────────────────────────────────────────────────┘
@@ -179,7 +179,7 @@ pragma solidity ^0.8.20;
 
 contract EnergyTrading {
 
-    enum Role { Producer, Consumer, Prosumer }
+    enum Role { Producer, Consumer }
 
     struct User {
         string  name;
@@ -187,61 +187,57 @@ contract EnergyTrading {
         bool    isRegistered;
     }
 
-    struct Listing {
-        uint256 id;
-        address producer;
-        uint256 energyAmount;   // Wh
-        uint256 pricePerUnit;   // wei per Wh
-        uint256 remaining;      // Wh left
-        uint256 timestamp;
-        bool    isActive;
+    // The grid — fed by the single producer
+    struct Grid {
+        address producer;        // The one producer's wallet
+        uint256 totalSupply;     // Wh available in the grid
+        uint256 pricePerUnit;    // wei per Wh (base price)
+        uint256 lastUpdated;
     }
 
     struct Trade {
-        uint256 listingId;
-        address buyer;
-        address seller;
-        uint256 energyAmount;
-        uint256 totalPrice;
+        uint256 id;
+        address buyer;           // Consumer who bought
+        address producer;        // Producer who gets paid
+        uint256 energyAmount;    // Wh purchased
+        uint256 totalPrice;      // Total wei paid
         uint256 timestamp;
     }
 
+    Grid    public grid;
     mapping(address => User) public users;
-    Listing[] public listings;
-    Trade[]   public trades;
+    Trade[] public trades;
 
     uint256 public totalEnergyTraded;
     uint256 public totalTransactions;
 
     // Events
     event UserRegistered(address indexed user, string name, Role role);
-    event EnergyListed(uint256 indexed id, address indexed producer, uint256 amount, uint256 price);
-    event TradeExecuted(uint256 indexed tradeId, address indexed buyer, address indexed seller, uint256 amount, uint256 price);
-    event ListingCancelled(uint256 indexed id);
+    event GridFed(address indexed producer, uint256 amount, uint256 pricePerUnit);
+    event EnergyPurchased(uint256 indexed tradeId, address indexed buyer, address indexed producer, uint256 amount, uint256 price);
 
     function registerUser(string memory _name, Role _role) external;
-    function listEnergy(uint256 _amount, uint256 _pricePerUnit) external;
-    function buyEnergy(uint256 _listingId, uint256 _amount) external payable;
-    function cancelListing(uint256 _listingId) external;
-    function getActiveListings() external view returns (Listing[] memory);
+    function feedGrid(uint256 _amount, uint256 _pricePerUnit) external;       // Producer feeds energy into grid
+    function buyFromGrid(uint256 _amount) external payable;                   // Consumer buys from grid, payment goes to producer
+    function getGridStatus() external view returns (Grid memory);
     function getUserTrades(address _user) external view returns (Trade[] memory);
-    function getDynamicPrice(uint256 _listingId) public view returns (uint256);
+    function getDynamicPrice() public view returns (uint256);                  // Price based on grid supply vs demand
 }
 ```
 
 ### Dynamic Pricing
 
 ```
-Price goes UP when lots of people want energy (high demand).
-Price goes DOWN when there's more energy available than needed (surplus).
+Price goes UP when lots of consumers want energy (high demand on the grid).
+Price goes DOWN when the producer has fed more energy than consumers need (grid surplus).
 
 Formula:
-  Demand Score = energy bought recently / energy available now
+  Demand Score = energy bought recently / grid supply available
 
   Score > 1.5  → price × 1.20  (high demand, price goes up 20%)
   Score > 1.0  → price × 1.10  (moderate demand, up 10%)
-  Score < 0.5  → price × 0.85  (surplus, discount 15%)
-  Otherwise    → base price (no change)
+  Score < 0.5  → price × 0.85  (grid surplus, discount 15%)
+  Otherwise    → base price set by producer (no change)
 ```
 
 ---
@@ -303,8 +299,8 @@ Formula:
 |------|-----------|-----|
 | Meter readings (production, consumption) | **MongoDB** (off-chain) | Fast writes, no gas cost, for dashboards |
 | User registration | **Sepolia blockchain** | Permanent, tamper-proof identity |
-| Energy listings (selling) | **Sepolia blockchain** | Transparent, verifiable offers |
-| Trades (buying) | **Sepolia blockchain** | Trustless payment + proof |
+| Grid supply (producer feeding grid) | **Sepolia blockchain** | Transparent, verifiable grid state |
+| Trades (consumer buying from grid) | **Sepolia blockchain** | Trustless payment to producer + proof |
 | Analytics/charts data | **MongoDB** (off-chain) | Aggregated from readings + trades |
 
 ### Arduino Code Outline
@@ -348,11 +344,11 @@ Formula:
 | #  | Route              | What It Does                                              |
 | -- | ------------------ | --------------------------------------------------------- |
 | 1  | `/`                | Landing page — hero, how-it-works, stats, CTA             |
-| 2  | `/dashboard`       | Live ESP32 data, role-based stats, active listings        |
-| 3  | `/marketplace`     | Browse energy listings, see dynamic prices, buy           |
-| 4  | `/list-energy`     | Producer sells surplus energy (form → smart contract)     |
-| 5  | `/history`         | All trades with blockchain links                          |
-| 6  | `/analytics`       | Charts — production vs consumption, price trends          |
+| 2  | `/dashboard`       | Live ESP32 data, grid status, producer/consumer stats     |
+| 3  | `/grid`            | View grid supply, dynamic price, buy energy from grid     |
+| 4  | `/feed-grid`       | Producer feeds surplus energy into the grid               |
+| 5  | `/history`         | All trades with blockchain links (payments to producer)   |
+| 6  | `/analytics`       | Charts — grid supply vs demand, price trends              |
 | 7  | `/profile`         | Wallet, role, linked ESP32 meter                          |
 
 ---
@@ -379,15 +375,15 @@ hack/
 │   │   ├── layout.tsx
 │   │   ├── page.tsx
 │   │   ├── dashboard/page.tsx
-│   │   ├── marketplace/page.tsx
-│   │   ├── list-energy/page.tsx
+│   │   ├── grid/page.tsx
+│   │   ├── feed-grid/page.tsx
 │   │   ├── history/page.tsx
 │   │   ├── analytics/page.tsx
 │   │   ├── profile/page.tsx
 │   │   └── api/
 │   │       ├── auth/nonce/route.ts
 │   │       ├── auth/verify/route.ts
-│   │       ├── energy/route.ts
+│   │       ├── grid/route.ts
 │   │       ├── trades/route.ts
 │   │       ├── meter/route.ts
 │   │       └── analytics/route.ts
@@ -414,10 +410,10 @@ hack/
 | Hour | Task |
 |------|------|
 | 0–1  | Next.js init + Tailwind + deps (wagmi, rainbowkit, mongoose) |
-| 1–3  | `EnergyTrading.sol` — register, list, buy, dynamic price |
+| 1–3  | `EnergyTrading.sol` — register, feedGrid, buyFromGrid, dynamic price |
 | 3–4  | Foundry tests (`forge test`) + deploy script |
 | 4–6  | MongoDB models + `/api/auth/*` routes |
-| 6–8  | `/api/meter` (ESP32 ingest) + `/api/energy` routes |
+| 6–8  | `/api/meter` (ESP32 ingest) + `/api/grid` routes |
 | 8–10 | ESP32 Arduino code + test with live API |
 
 ### Phase 2: Core Features (Hours 10–26)
@@ -426,10 +422,10 @@ hack/
 |-------|------|
 | 10–12 | Web3Provider + RainbowKit wallet connect |
 | 12–15 | Landing page (hero, how-it-works, animated stats) |
-| 15–18 | Dashboard (live ESP32 data, role-based stats) |
-| 18–21 | Marketplace (browse, filter, buy flow via contract) |
-| 21–23 | List Energy form → smart contract call |
-| 23–26 | Trade History page (from contract events) |
+| 15–18 | Dashboard (live ESP32 data, grid status) |
+| 18–21 | Grid page (view supply, dynamic price, buy from grid) |
+| 21–23 | Feed Grid form → smart contract call |
+| 23–26 | Trade History page (from contract events, showing payments to producer) |
 
 ### Phase 3: Polish (Hours 26–40)
 
@@ -458,8 +454,9 @@ hack/
 1. Click "Connect Wallet" → MetaMask popup
 2. Sign a random message to prove you own the wallet
 3. Server verifies signature → gives you a login token
-4. First time? → Pick your role (Producer / Consumer / Both)
+4. First time? → Pick your role (Producer / Consumer)
 5. Role stored on blockchain — permanent, transparent
+6. Only ONE wallet can be the Producer — all others are Consumers
 ```
 
 ---
@@ -501,18 +498,18 @@ forge script script/Deploy.s.sol \
 1. **"This ESP32 is our smart meter."** Point to it → show serial monitor with live readings
 2. **Open the landing page** — show the mission, how-it-works section
 3. **Connect Wallet A** (Ravi the Producer) → register → dashboard shows live ESP32 data
-4. **Ravi lists 50 kWh** → show the MetaMask popup → tx confirmed on Sepolia
-5. **Connect Wallet B** (Priya the Consumer) → register → go to marketplace
-6. **Priya buys 20 kWh** → smart contract runs → Sepolia ETH transfers
-7. **Show both trade histories** — click tx hash → **opens sepolia.etherscan.io** (real blockchain proof!)
-8. **Show analytics** — live charts of production vs consumption
+4. **Ravi clicks "Feed Grid"** → surplus energy flows into the grid → show MetaMask popup → tx confirmed on Sepolia
+5. **Connect Wallet B** (Priya the Consumer) → register → go to Grid Dashboard
+6. **Priya buys 20 kWh from the grid** → smart contract runs → Sepolia ETH transfers from Priya to Ravi
+7. **"Ravi got paid!"** → show both trade histories → click tx hash → **opens sepolia.etherscan.io** (real blockchain proof!)
+8. **Show analytics** — live charts of grid supply vs consumer demand
 9. **Key points to emphasize:**
    - "This is deployed on a **real Ethereum testnet** — Sepolia. Same tech as Ethereum mainnet."
-   - "No middleman — direct peer-to-peer"
+   - "No middleman — the producer feeds the grid, consumers buy from it, and the producer gets paid directly"
    - "Every trade is verifiable on Etherscan — can't be faked"
    - "Real IoT hardware sending real data, not a browser simulation"
-   - "Dynamic pricing — fair for everyone"
+   - "Dynamic pricing — fair for everyone, adjusts based on grid supply and demand"
 
 ---
 
-> **🎯 Priority**: Smart contract + one complete trade flow **first**. Then ESP32. Then pretty UI. A working 1-trade demo beats a pretty but broken full platform.
+> **🎯 Priority**: Smart contract + one complete grid trade flow (producer feeds grid → consumer buys from grid → producer gets paid) **first**. Then ESP32. Then pretty UI. A working 1-trade demo beats a pretty but broken full platform.
