@@ -55,7 +55,9 @@ The ESP32 acts as a **smart meter**. In a real deployment, it would be connected
 
 ```
 Step 1:  ESP32 smart meter powers on, connects to WiFi
-         └─→ Starts sending energy readings every 5 seconds to our server
+         └─→ Connects to **MQTT Broker** (Mosquitto)
+         └─→ Starts publishing energy readings every 5 seconds
+         └─→ **MQTT Bridge** consumes data & stores in **MongoDB Database**
 
 Step 2:  Ravi (Producer) opens the website
          └─→ Clicks "Connect Wallet" → MetaMask popup → signs in
@@ -95,7 +97,7 @@ Step 9:  Analytics page shows grid-wide stats
   ┌─────────────────────────────────────────────────────────────┐
   │                    OFF-CHAIN (your server)                  │
   │  Meter readings, user profiles, analytics, notifications   │
-  │  Stored in: MongoDB                                        │
+  │  Stored in: MongoDB Database (via Prisma)                  │
   └─────────────────────────────────────────────────────────────┘
 
   ┌─────────────────────────────────────────────────────────────┐
@@ -109,46 +111,43 @@ Step 9:  Analytics page shows grid-wide stats
 ┌──────────────┐
 │    ESP32     │  (1 device, your smart meter)
 │              │
-│ Reads mock   │       HTTP POST over WiFi
+│ Reads mock   │       MQTT Publish
 │ solar +      │──────────────────────────────────────┐
-│ consumption  │   to YOUR LAPTOP's local IP           │
-│ data         │   http://192.168.x.x:3000/api/meter   │
+│ consumption  │   to MQTT Broker (Mosquitto)          │
+│ data         │   Topic: solix/meter/METER_001/data   │
 └──────────────┘                                       │
        ⚡ Same WiFi network ⚡                          │
                                                        ▼
-                  ┌───────────────────────────────────────────────────┐
-                  │            NEXT.JS APP (on your laptop)          │
-                  │                                                   │
-                  │  ┌─── FRONTEND (App Router) ──────────────────┐  │
-                  │  │ Landing · Dashboard · Grid · Feed Grid         │  │
-                  │  │ Trade History · Analytics · Profile             │  │
-                  │  │                                             │  │
-                  │  │ Wagmi + RainbowKit (wallet connection)      │  │
-                  │  └─────────────────────────────────────────────┘  │
-                  │                                                   │
-                  │  ┌─── API ROUTES (/api/*) ─────────────────────┐  │
-                  │  │ /api/meter        ← ESP32 pushes data here │  │
-                  │  │ /api/auth/*       wallet sign-in + JWT      │  │
-                  │  │ /api/grid/*       grid status + feed/buy    │  │
-                  │  │ /api/trades/*     trade records             │  │
-                  │  │ /api/analytics/*  charts data               │  │
-                  │  └─────────────────────────────────────────────┘  │
-                  │                                                   │
-                  │              MongoDB (off-chain data)             │
-                  └──────────────────┬────────────────────────────────┘
-                                     │  Wagmi / Viem
-                                     │  (browser calls blockchain
-                                     │   directly via MetaMask)
-                                     ▼
+                ┌─────────────────────────────────────────────────────┐
+                │             INFRASTRUCTURE & BACKEND                │
+                │                                                     │
+                │  ┌─── MQTT BROKER (Mosquitto) ──────────────────┐  │
+                │  │ Receives live telemetry from ESP32           │  │
+                │  └───────────────────┬──────────────────────────┘  │
+                │                      │                             │
+                │  ┌─── MQTT BRIDGE (Node.js) ────────────────────┐  │
+                │  │ Subscribes to broker, persists to MongoDB    │  │
+                │  └───────────────────┬──────────────────────────┘  │
+                │                      ▼                             │
+                │  ┌─── NEXT.JS APP (Web Dashboard) ──────────────┐  │
+                │  │ Landing · Dashboard · Grid · Feed Grid       │  │
+                │  │ Wagmi + RainbowKit (wallet connection)       │  │
+                │  └───────────────────┬──────────────────────────┘  │
+                │                      │                             │
+                │               MongoDB Database                     │
+                └──────────────────────┬─────────────────────────────┘
+                                       │  Wagmi / Viem
+                                       │  (browser calls blockchain
+                                       │   directly via MetaMask)
+                                       ▼
                   ┌───────────────────────────────────────────────────┐
                   │        ETHEREUM SEPOLIA TESTNET                   │
                   │        (real public blockchain, free test ETH)    │
                   │                                                   │
                   │   EnergyTrading.sol (deployed contract)           │
                   │   ├── registerUser()                               │
-                  │   ├── feedGrid() — producer pushes energy to grid   │
-                  │   ├── buyFromGrid() — consumer pays producer        │
-                  │   ├── getDynamicPrice()                            │
+                  │   ├── feedGrid()                                   │
+                  │   ├── buyFromGrid()                                │
                   │   └── All trades visible on sepolia.etherscan.io  │
                   └───────────────────────────────────────────────────┘
 ```
@@ -157,17 +156,10 @@ Step 9:  Analytics page shows grid-wide stats
 
 ## 3. Tech Stack
 
-| Layer           | Technology                         | Why                                       |
-| --------------- | ---------------------------------- | ----------------------------------------- |
-| **Fullstack**   | Next.js 14 (App Router)            | Single codebase for frontend + API        |
-| **Styling**     | Tailwind CSS                       | Rapid prototyping                         |
-| **Wallet**      | RainbowKit + Wagmi                 | Best-in-class wallet UX                   |
-| **Database**    | MongoDB (Mongoose)                 | Flexible schema, fast setup               |
-| **Blockchain**  | Solidity + **Foundry**             | Faster compilation, better testing, forge |
-| **Network**     | **Ethereum Sepolia Testnet**       | Real public testnet, free ETH from faucet |
-| **IoT**         | **1× ESP32** (Arduino C++)         | Real hardware smart meter                 |
-| **Charts**      | Recharts                           | React charting library                    |
-| **Auth**        | MetaMask wallet sign + JWT         | Web3-native auth                          |
+| **MQTT Broker** | **Eclipse Mosquitto**                | Standard, lightweight MQTT broker         |
+| **MQTT Bridge** | Node.js Worker                       | Decouples ingestion from main API         |
+| **Charts**      | Recharts                             | React charting library                    |
+| **Auth**        | MetaMask wallet sign + JWT           | Web3-native auth                          |
 
 ---
 
@@ -246,73 +238,54 @@ Formula:
 
 ### Where Does the ESP32 Send Data?
 
-**To your Next.js server (MongoDB) — NOT to the blockchain.**
+**To the MQTT Broker (Mosquitto) — NOT directly to the API or blockchain.**
 
 ```
-┌──────────┐    WiFi HTTP POST     ┌─────────────┐
-│  ESP32   │ ────────────────────► │ Next.js API │ ──► MongoDB
-│          │                       │ /api/meter  │
-└──────────┘                       └─────────────┘
+┌──────────┐      MQTT Publish       ┌───────────────┐     ┌─────────────┐
+│  ESP32   │ ──────────────────────► │ Mosquitto     │ ──► │ MQTT Bridge │ ──► MongoDB
+│          │   topic: solix/data...  │ (Broker)      │     │ (Service)   │
+└──────────┘                         └───────────────┘     └─────────────┘
      ❌ Does NOT talk to blockchain
-     ✅ Sends data to your laptop over WiFi
+     ✅ Publishes to broker over WiFi
 ```
 
-### Why Not Send Directly to Blockchain?
+### Why Use MQTT?
 
 | Reason | Explanation |
 |--------|-------------|
-| **ESP32 can't sign transactions** | Too limited (no crypto library, no wallet) |
-| **Gas costs** | Every 5 seconds × gas fee = way too expensive |
-| **Speed** | Blockchain is slow (15s blocks), readings need to be instant |
-| **Not needed** | Meter data is just monitoring — only TRADES need blockchain |
+| **Asynchronous** | ESP32 doesn't wait for DB writes; it just publishes and sleeps |
+| **Lightweight** | Less overhead than HTTP/REST for frequent readings |
+| **Decoupled** | Main Next.js API doesn't need to handle raw IoT traffic |
+| **Scalable** | Multiple meters can publish to different topics easily |
 
 ### How It Works (Step by Step)
 
-```
-1. ESP32 powers on → connects to YOUR WiFi (same network as laptop)
-
-2. ESP32 finds your laptop at 192.168.x.x (your local IP)
-
-3. Every 5 seconds, ESP32 sends an HTTP POST request:
-   URL:  http://192.168.1.105:3000/api/meter
-   Body: {
-     "meterId": "METER_001",
-     "walletAddress": "0xRavi...",
-     "production": 3200,     ← Wh (mock solar output)
-     "consumption": 1100,    ← Wh (mock home usage)
-     "surplus": 2100          ← production - consumption
-   }
-
-4. Next.js /api/meter route receives it:
-   - Validates the API key (simple auth)
-   - Saves to MongoDB MeterReadings collection
-   - Returns { success: true }
-
-5. Dashboard page polls /api/meter/[walletAddress] every 3 seconds
-   - Fetches latest readings from MongoDB
-   - Updates the live chart in the browser
-```
+1. ESP32 powers on → connects to YOUR WiFi.
+2. ESP32 connects to **Mosquitto Broker** at 192.168.x.x (or container name).
+3. Every 5 seconds, ESP32 publishes a JSON payload:
+   Topic: `solix/meter/METER_001/data`
+   Body: `{ "production": 3200, "consumption": 1100, "surplus": 2100 }`
+4. **MQTT Bridge** (Node.js service) sees the message:
+   - Validates the sender
+   - Persists to **MongoDB Database**
+5. Dashboard page polls the main API, which reads from MongoDB.
 
 ### What Data Goes Where?
 
 | Data | Stored In | Why |
 |------|-----------|-----|
-| Meter readings (production, consumption) | **MongoDB** (off-chain) | Fast writes, no gas cost, for dashboards |
-| User registration | **Sepolia blockchain** | Permanent, tamper-proof identity |
-| Grid supply (producer feeding grid) | **Sepolia blockchain** | Transparent, verifiable grid state |
-| Trades (consumer buying from grid) | **Sepolia blockchain** | Trustless payment to producer + proof |
-| Analytics/charts data | **MongoDB** (off-chain) | Aggregated from readings + trades |
+| Meter telemetry | **Oracle** (off-chain) | High-speed relational storage, persistent |
+| User metadata | **Oracle** (off-chain) | Relations between users, meters, and roles |
+| On-chain events | **Sepolia** | Immutable proof of trades and payments |
 
 ### Arduino Code Outline
 
 ```cpp
-// 1. Connect to WiFi (same network as your laptop)
+// 1. Connect to WiFi and MQTT Broker
 // 2. Every 5 seconds:
-//    - Generate mock solar production (sine curve, peaks at noon)
-//    - Generate mock home consumption (random 500-2000W)
-//    - Calculate surplus = production - consumption
-//    - HTTP POST JSON to http://192.168.x.x:3000/api/meter
-//    - Print to Serial Monitor (so judges can see live output)
+//    - Generate mock solar/consumption data
+//    - Publish JSON to "solix/meter/METER_x/data"
+//    - No need to handle HTTP response codes
 ```
 
 ### What Judges Will See
@@ -324,17 +297,25 @@ Formula:
 
 ---
 
-## 6. Database Schema (MongoDB)
+## 6. Database Schema (MongoDB - via Prisma)
 
-```javascript
-// Users
-{ walletAddress, name, role, meterId, location, solarCapacity, createdAt }
+```prisma
+// Defined in prisma/schema.prisma
+model User {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletAddress  String   @unique
+  role           String   // producer | consumer
+  meterId        String?
+  ...
+}
 
-// MeterReadings (from ESP32)
-{ meterId, walletAddress, production, consumption, surplus, timestamp }
-
-// Notifications
-{ walletAddress, type, message, read, createdAt }
+model MeterReading {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  meterId       String
+  production    Float
+  consumption   Float
+  timestamp     DateTime @default(now())
+}
 ```
 
 ---
@@ -356,48 +337,19 @@ Formula:
 ## 8. Folder Structure
 
 ```
-hack/
-├── blockchain/                     # Foundry project
-│   ├── src/
-│   │   └── EnergyTrading.sol
-│   ├── test/
-│   │   └── EnergyTrading.t.sol
-│   ├── script/
-│   │   └── Deploy.s.sol
-│   └── foundry.toml
+├── infra/                          # Infrastructure
+│   ├── mosquitto/                  # MQTT Config
+│   └── mongodb/                    # MongoDB Persistence
 │
-├── esp32/
-│   └── smart_meter/
-│       └── smart_meter.ino
+├── services/
+│   └── mqtt_bridge/                # MQTT -> DB Bridge
+│
+├── blockchain/                     # Foundry project
+│   └── ...
 │
 ├── src/                            # Next.js app
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── dashboard/page.tsx
-│   │   ├── grid/page.tsx
-│   │   ├── feed-grid/page.tsx
-│   │   ├── history/page.tsx
-│   │   ├── analytics/page.tsx
-│   │   ├── profile/page.tsx
-│   │   └── api/
-│   │       ├── auth/nonce/route.ts
-│   │       ├── auth/verify/route.ts
-│   │       ├── grid/route.ts
-│   │       ├── trades/route.ts
-│   │       ├── meter/route.ts
-│   │       └── analytics/route.ts
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   ├── models/
-│   └── providers/
-│
-├── public/
-├── tailwind.config.ts
-├── next.config.js
-├── package.json
-├── .env.local
+│   └── ...
+├── docker-compose.yml              # All-in-one orchestration
 └── plan.md
 ```
 
@@ -409,12 +361,11 @@ hack/
 
 | Hour | Task |
 |------|------|
-| 0–1  | Next.js init + Tailwind + deps (wagmi, rainbowkit, mongoose) |
-| 1–3  | `EnergyTrading.sol` — register, feedGrid, buyFromGrid, dynamic price |
-| 3–4  | Foundry tests (`forge test`) + deploy script |
-| 4–6  | MongoDB models + `/api/auth/*` routes |
-| 6–8  | `/api/meter` (ESP32 ingest) + `/api/grid` routes |
-| 8–10 | ESP32 Arduino code + test with live API |
+| 0–1  | Next.js init + Docker (Mosquitto, MongoDB) |
+| 1–3  | `EnergyTrading.sol` — register, feedGrid, buy from grid |
+| 3–5  | **MQTT Bridge** implementation & database persistence |
+| 5–7  | ESP32 MQTT client setup + test with Broker |
+| 8–10 | Prisma models & MongoDB connection |
 
 ### Phase 2: Core Features (Hours 10–26)
 

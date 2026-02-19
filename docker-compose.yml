@@ -29,5 +29,5 @@ services:
       - mongodb
     environment:
       - MQTT_BROKER=mqtt://mosquitto:1883
-      - MONGO_URI=mongodb://mongodb:27017/solix
+      - DATABASE_URL=mongodb://mongodb:27017/solix
     restart: always

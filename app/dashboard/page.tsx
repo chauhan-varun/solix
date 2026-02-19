@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const mockHistory = [
     { time: "10:00", production: 2.1, consumption: 1.2 },
@@ -39,11 +40,57 @@ const mockHistory = [
 export default function DashboardPage() {
     const { isConnected, address } = useAccount();
     const [mounted, setMounted] = useState(false);
+    const [history, setHistory] = useState<any[]>([]);
+    const [stats, setStats] = useState<any>({ production: 0, consumption: 0, surplus: 0 });
+    const [loading, setLoading] = useState(true);
+    const [meterId, setMeterId] = useState("");
+    const [isLinking, setIsLinking] = useState(false);
+
+    const fetchData = async () => {
+        if (!address) return;
+        try {
+            const res = await fetch(`/api/readings?address=${address}`);
+            const data = await res.json();
+            if (data.history) setHistory(data.history);
+            if (data.live) setStats(data.live);
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to fetch readings:", err);
+        }
+    };
+
+    const handleLinkMeter = async () => {
+        if (!meterId) return;
+        setIsLinking(true);
+        try {
+            const res = await fetch('/api/user/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    walletAddress: address,
+                    meterId: meterId,
+                    role: 'producer' // Default for now
+                })
+            });
+            if (res.ok) {
+                toast.success("Meter linked successfully!");
+                fetchData();
+            }
+        } catch (err) {
+            toast.error("Failed to link meter");
+        } finally {
+            setIsLinking(false);
+        }
+    };
 
     useEffect(() => {
-        // eslint-disable-next-line
         setMounted(true);
-    }, []);
+        if (isConnected && address) {
+            fetchData();
+            const interval = setInterval(fetchData, 5000); // Poll every 5 seconds
+            return () => clearInterval(interval);
+        }
+    }, [isConnected, address]);
 
     if (!mounted) return null;
 
@@ -98,7 +145,7 @@ export default function DashboardPage() {
                                     <TrendingUp className="h-3 w-3" /> +12%
                                 </div>
                             </div>
-                            <div className="text-2xl font-bold">3.2 kW</div>
+                            <div className="text-2xl font-bold">{stats.production.toFixed(1)} Wh</div>
                             <div className="text-xs text-white/40 uppercase tracking-wider font-bold">Live Production</div>
                         </CardContent>
                     </Card>
@@ -113,7 +160,7 @@ export default function DashboardPage() {
                                     <TrendingUp className="h-3 w-3" /> +4%
                                 </div>
                             </div>
-                            <div className="text-2xl font-bold">1.1 kW</div>
+                            <div className="text-2xl font-bold">{stats.consumption.toFixed(1)} Wh</div>
                             <div className="text-xs text-white/40 uppercase tracking-wider font-bold">Current Usage</div>
                         </CardContent>
                     </Card>
@@ -125,7 +172,7 @@ export default function DashboardPage() {
                                     <ArrowUpRight className="h-5 w-5 text-green-500" />
                                 </div>
                             </div>
-                            <div className="text-2xl font-bold">2.1 kW</div>
+                            <div className="text-2xl font-bold">{stats.surplus.toFixed(1)} Wh</div>
                             <div className="text-xs text-white/40 uppercase tracking-wider font-bold">Grid Surplus</div>
                         </CardContent>
                     </Card>
@@ -143,6 +190,33 @@ export default function DashboardPage() {
                     </Card>
                 </div>
 
+                {history.length === 0 && !loading && (
+                    <Card className="mb-8 border-orange-500/30 bg-orange-500/5 backdrop-blur-md">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-orange-500" /> Link your Smart Meter
+                            </CardTitle>
+                            <CardDescription>Enter your ESP32 Meter ID to start seeing live energy data</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col sm:flex-row gap-4">
+                            <input
+                                type="text"
+                                placeholder="e.g. METER_001_HACK"
+                                value={meterId}
+                                onChange={(e) => setMeterId(e.target.value)}
+                                className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                            />
+                            <Button
+                                onClick={handleLinkMeter}
+                                disabled={isLinking || !meterId}
+                                className="rounded-xl bg-orange-600 hover:bg-orange-700"
+                            >
+                                {isLinking ? "Linking..." : "Connect Meter"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Charts Section */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     <Card className="lg:col-span-2 border-white/10 bg-white/[0.02] backdrop-blur-md">
@@ -153,7 +227,7 @@ export default function DashboardPage() {
                         <CardContent>
                             <div className="h-[300px] w-full pt-4">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={mockHistory}>
+                                    <AreaChart data={history.length > 0 ? history : mockHistory}>
                                         <defs>
                                             <linearGradient id="colorProd" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
@@ -175,6 +249,11 @@ export default function DashboardPage() {
                                         <Area type="monotone" dataKey="consumption" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCons)" name="Consumption" />
                                     </AreaChart>
                                 </ResponsiveContainer>
+                                {history.length === 0 && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-2xl">
+                                        <p className="text-white/40 font-bold uppercase tracking-widest">No readings yet from ESP32</p>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
