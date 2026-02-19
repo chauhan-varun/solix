@@ -20,7 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
           
       - name: Install Dependencies
         run: pnpm install
@@ -54,3 +53,12 @@ jobs:
             cd ~/solix
             git pull origin dev
             
+            # 1. Update Infrastructure (MQTT/Mongo)
+            docker compose up -d mosquitto mongodb mqtt-bridge
+            
+            # 2. Update Website (using PM2)
+            export DATABASE_URL="${{ secrets.DATABASE_URL }}"
+            pnpm install
+            npx prisma generate
+            pnpm build
+            pm2 restart solix || pm2 start "pnpm start" --name "solix"
