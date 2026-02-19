@@ -1,0 +1,33 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: solix-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./infra/mosquitto/config:/mosquitto/config
+      - ./infra/mosquitto/data:/mosquitto/data
+      - ./infra/mosquitto/log:/mosquitto/log
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    container_name: solix-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./infra/mongodb/data:/data/db
+    restart: always
+
+  mqtt-bridge:
+    build:
+      context: ./services/mqtt_bridge
+    container_name: solix-mqtt-bridge
+    depends_on:
+      - mosquitto
+      - mongodb
+    environment:
+      - MQTT_BROKER=mqtt://mosquitto:1883
+      - MONGO_URI=mongodb://mongodb:27017/solix
+    restart: always

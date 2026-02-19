@@ -1,0 +1,13 @@
+{
+    "name": "mqtt-bridge",
+    "version": "1.0.0",
+    "description": "Bridge between MQTT and MongoDB",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "mqtt": "^5.0.0",
+        "mongodb": "^6.0.0"
+    }
+}
