@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAddress } from 'viem';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 function normalizeAddress(addr: string): string {
     try {
