@@ -25,7 +25,7 @@ jobs:
         run: pnpm install
         
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: pnpm prisma generate
 
       - name: Lint
         run: pnpm run lint
@@ -59,6 +59,6 @@ jobs:
             # 2. Update Website (using PM2)
             export DATABASE_URL="${{ secrets.DATABASE_URL }}"
             pnpm install
-            npx prisma generate
+            pnpm prisma generate
             pnpm build
             pm2 restart solix || pm2 start "pnpm start" --name "solix"
