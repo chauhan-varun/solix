@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 };
 
 import { Web3Provider } from "@/providers/web3-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -25,9 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Web3Provider>{children}</Web3Provider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <Web3Provider>
+            {children}
+            <Toaster />
+          </Web3Provider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -78,7 +78,7 @@ export default function GridPage() {
             address: CONTRACT_ADDRESS,
             abi: EnergyTradingABI.abi,
             functionName: "registerUser",
-            args: [name, 1], // Role.Consumer = 1
+            args: ["Consumer", 1], // Role.Consumer = 1
         }, {
             onSuccess: () => {
                 toast.success("Registered as consumer!");
@@ -124,13 +124,13 @@ export default function GridPage() {
     if (!mounted) return null;
 
     return (
-        <div className="min-h-screen bg-black text-white pb-20">
+        <div className="min-h-screen bg-background text-foreground pb-20">
             <Navbar />
 
             <main className="container mx-auto px-4 pt-24">
                 <div className="mb-12 text-center">
                     <h1 className="text-5xl font-black tracking-tight mb-4">Grid Marketplace</h1>
-                    <p className="text-white/50 max-w-2xl mx-auto text-lg">
+                    <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                         Directly access surplus energy from local producers. Prices adjust dynamically
                         based on real-time grid supply and demand.
                     </p>
@@ -138,35 +138,35 @@ export default function GridPage() {
 
                 <div className="grid gap-8 lg:grid-cols-3">
                     {/* Grid Status Card */}
-                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-1">
+                    <Card className="lg:col-span-1">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Zap className="h-5 w-5 text-orange-400" /> Grid Status
+                                <Zap className="h-5 w-5 text-primary" /> Grid Status
                             </CardTitle>
                             <CardDescription>Live stats from the Sepolia grid</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div className="p-4 rounded-2xl bg-white/5 space-y-1">
-                                <p className="text-xs text-white/40 font-bold uppercase">Available Supply</p>
-                                <div className="text-3xl font-black">
+                            <div className="p-4 rounded-2xl bg-muted/50 clay-inset space-y-1">
+                                <p className="text-xs text-muted-foreground font-bold uppercase">Available Supply</p>
+                                <div className="text-3xl font-black text-foreground">
                                     {isGridLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${gridStatus?.totalSupply?.toString() || 0} Wh`}
                                 </div>
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-white/5 space-y-1">
-                                <p className="text-xs text-white/40 font-bold uppercase">Dynamic Price</p>
-                                <div className="text-3xl font-black text-green-400">
+                            <div className="p-4 rounded-2xl bg-muted/50 clay-inset space-y-1">
+                                <p className="text-xs text-muted-foreground font-bold uppercase">Dynamic Price</p>
+                                <div className="text-3xl font-black text-primary">
                                     {isGridLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${formatEther(dynamicPrice ?? gridStatus?.pricePerUnit ?? BigInt(0))} ETH/Wh`}
                                 </div>
-                                <p className="text-[10px] text-white/30 flex items-center gap-1">
+                                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                                     <TrendingUp className="h-3 w-3" /> Updated 2m ago
                                 </p>
                             </div>
 
-                            <div className="flex items-start gap-3 p-4 rounded-2xl border border-orange-500/20 bg-orange-500/5">
-                                <Info className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
-                                <p className="text-xs text-white/60 leading-relaxed">
-                                    The grid is currently in **surplus state**. Prices are discounted
+                            <div className="flex items-start gap-3 p-4 rounded-2xl border border-primary/30 bg-primary/5">
+                                <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    The grid is currently in surplus state. Prices are discounted
                                     to encourage consumption.
                                 </p>
                             </div>
@@ -174,44 +174,44 @@ export default function GridPage() {
                     </Card>
 
                     {/* Buy Energy Card */}
-                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-2 shadow-2xl shadow-orange-500/5">
+                    <Card className="lg:col-span-2">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <ShoppingCart className="h-5 w-5 text-blue-400" /> Buy from Grid
+                                <ShoppingCart className="h-5 w-5 text-primary" /> Buy from Grid
                             </CardTitle>
                             <CardDescription>Enter the amount of energy you wish to purchase</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-8">
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-white/50">Amount (Wh)</label>
+                                    <label className="text-sm font-medium text-muted-foreground">Amount (Wh)</label>
                                     <Input
                                         type="number"
                                         placeholder="e.g. 500"
                                         value={buyAmount}
                                         onChange={(e) => setBuyAmount(e.target.value)}
-                                        className="h-14 rounded-2xl border-white/10 bg-white/5 text-xl font-bold focus-visible:ring-orange-500/50"
+                                        className="h-14 rounded-2xl text-xl font-bold"
                                     />
                                 </div>
 
-                                <div className="flex justify-between items-center p-4 rounded-2xl bg-white/5">
+                                <div className="flex justify-between items-center p-4 rounded-2xl bg-muted/50 clay-inset">
                                     <div>
-                                        <p className="text-xs text-white/40 font-bold uppercase">Estimated Cost</p>
-                                        <p className="text-xl font-black">
+                                        <p className="text-xs text-muted-foreground font-bold uppercase">Estimated Cost</p>
+                                        <p className="text-xl font-black text-foreground">
                                             {buyAmount ? (parseFloat(buyAmount) * parseFloat(formatEther(dynamicPrice ?? gridStatus?.pricePerUnit ?? BigInt(0)))).toFixed(6) : "0.000000"} ETH
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs text-white/40 font-bold uppercase">Your Balance</p>
-                                        <p className="text-sm font-medium text-white/60">{balance ? parseFloat(formatEther(balance.value)).toFixed(4) : "0.0000"} ETH</p>
+                                        <p className="text-xs text-muted-foreground font-bold uppercase">Your Balance</p>
+                                        <p className="text-sm font-medium text-foreground">{balance ? parseFloat(formatEther(balance.value)).toFixed(4) : "0.0000"} ETH</p>
                                     </div>
                                 </div>
                             </div>
 
                             {!isOnSepolia && isConnected && (
-                                <div className="p-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 space-y-3">
-                                    <p className="text-yellow-500 font-bold text-sm text-center">Wrong network</p>
-                                    <p className="text-xs text-white/50 text-center">Switch to Sepolia to buy from the grid.</p>
+                                <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 space-y-3">
+                                    <p className="text-amber-600 dark:text-amber-400 font-bold text-sm text-center">Wrong network</p>
+                                    <p className="text-xs text-muted-foreground text-center">Switch to Sepolia to buy from the grid.</p>
                                     <Button
                                         onClick={() => switchChain?.({ chainId: sepolia.id })}
                                         variant="outline"
@@ -222,9 +222,9 @@ export default function GridPage() {
                                 </div>
                             )}
                             {isOnSepolia && !isRegistered && isConnected && (
-                                <div className="p-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 space-y-3">
-                                    <p className="text-yellow-500 font-bold text-sm text-center">Register as Consumer first</p>
-                                    <p className="text-xs text-white/50 text-center">You must register on-chain before buying from the grid.</p>
+                                <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 space-y-3">
+                                    <p className="text-amber-600 dark:text-amber-400 font-bold text-sm text-center">Register as Consumer first</p>
+                                    <p className="text-xs text-muted-foreground text-center">You must register on-chain before buying from the grid.</p>
                                     <Button
                                         onClick={handleRegister}
                                         variant="outline"
@@ -237,7 +237,7 @@ export default function GridPage() {
                             )}
                             <Button
                                 onClick={handleBuy}
-                                className="w-full h-16 rounded-2xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="w-full h-16 rounded-2xl font-black text-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
                                 disabled={buyDisabled}
                                 title={buyDisabledReason}
                             >
@@ -248,10 +248,10 @@ export default function GridPage() {
                                 )}
                             </Button>
                             {buyDisabled && buyDisabledReason && (
-                                <p className="text-center text-xs text-amber-400/80">— {buyDisabledReason} —</p>
+                                <p className="text-center text-xs text-amber-600 dark:text-amber-400">— {buyDisabledReason} —</p>
                             )}
 
-                            <p className="text-center text-xs text-white/30 px-6 font-medium">
+                            <p className="text-center text-xs text-muted-foreground px-6 font-medium">
                                 By purchasing, you agree to the automated trade terms. Funds will be
                                 transferred directly to the producer node upon blockchain verification.
                             </p>

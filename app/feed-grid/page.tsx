@@ -100,49 +100,47 @@ export default function FeedGridPage() {
                 toast.success("Energy fed to the grid!");
                 setFeedAmount("");
             },
-            onError: (err) => {
-                toast.error("Transaction failed: " + err.message);
-            }
+            onError: (err) => toast.error("Transaction failed: " + getRevertMessage(err))
         });
     };
 
     if (!mounted) return null;
 
     return (
-        <div className="min-h-screen bg-black text-white pb-20">
+        <div className="min-h-screen bg-background text-foreground pb-20">
             <Navbar />
 
             <main className="container mx-auto px-4 pt-24">
                 <div className="mb-12 text-center">
                     <h1 className="text-5xl font-black tracking-tight mb-4">Feed the Grid</h1>
-                    <p className="text-white/50 max-w-2xl mx-auto text-lg">
+                    <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                         Connect your surplus capacity to the network. Every watt shared is green
                         energy utilized by those who need it most.
                     </p>
                 </div>
 
                 {!isUserProducer && isConnected && (
-                    <div className="mb-8 mx-auto max-w-2xl p-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 space-y-3">
+                    <div className="mb-8 mx-auto max-w-2xl p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 space-y-3 clay">
                         {!isOnSepolia ? (
                             <>
-                                <p className="text-yellow-500 font-bold text-center">Wrong network</p>
-                                <p className="text-xs text-white/50 text-center">Switch to Sepolia to interact with the grid.</p>
+                                <p className="text-amber-600 dark:text-amber-400 font-bold text-center">Wrong network</p>
+                                <p className="text-xs text-muted-foreground text-center">Switch to Sepolia to interact with the grid.</p>
                                 <Button
                                     onClick={() => switchChain?.({ chainId: sepolia.id })}
                                     variant="outline"
-                                    className="w-full border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+                                    className="w-full"
                                 >
                                     Switch to Sepolia
                                 </Button>
                             </>
                         ) : noProducerYet && !isRegistered ? (
                             <>
-                                <p className="text-yellow-500 font-bold text-center">No producer registered yet</p>
-                                <p className="text-xs text-white/50 text-center">Be the first to register as the grid producer and start feeding surplus energy.</p>
+                                <p className="text-amber-600 dark:text-amber-400 font-bold text-center">No producer registered yet</p>
+                                <p className="text-xs text-muted-foreground text-center">Be the first to register as the grid producer and start feeding surplus energy.</p>
                                 <Button
                                     onClick={handleRegisterProducer}
                                     variant="outline"
-                                    className="w-full border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+                                    className="w-full"
                                     disabled={isFeedPending}
                                 >
                                     {isFeedPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</> : "Register as Producer"}
@@ -150,13 +148,13 @@ export default function FeedGridPage() {
                             </>
                         ) : noProducerYet && isRegistered && isConsumer ? (
                             <>
-                                <p className="text-yellow-500 font-bold text-center">Already registered as Consumer</p>
-                                <p className="text-xs text-white/50 text-center">You registered as a consumer. Each wallet can only have one role—you can buy from the grid but cannot become the producer.</p>
+                                <p className="text-amber-600 dark:text-amber-400 font-bold text-center">Already registered as Consumer</p>
+                                <p className="text-xs text-muted-foreground text-center">You registered as a consumer. Each wallet can only have one role—you can buy from the grid but cannot become the producer.</p>
                             </>
                         ) : !noProducerYet ? (
                             <>
-                                <p className="text-yellow-500 font-bold text-center">Unauthorized Role</p>
-                                <p className="text-xs text-white/50 text-center">Only the registered grid producer can feed energy. You can buy from the grid as a consumer.</p>
+                                <p className="text-amber-600 dark:text-amber-400 font-bold text-center">Unauthorized Role</p>
+                                <p className="text-xs text-muted-foreground text-center">Only the registered grid producer can feed energy. You can buy from the grid as a consumer.</p>
                             </>
                         ) : null}
                     </div>
@@ -165,44 +163,44 @@ export default function FeedGridPage() {
                 <div className="grid gap-8 lg:grid-cols-2 max-w-5xl mx-auto">
                     {/* Status Indicators */}
                     <div className="space-y-6">
-                        <Card className="border-white/10 bg-white/[0.02] backdrop-blur-xl">
+                        <Card>
                             <CardContent className="p-8">
                                 <div className="flex items-center justify-between mb-8">
-                                    <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center">
-                                        <Gauge className="h-8 w-8 text-orange-500" />
+                                    <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center clay">
+                                        <Gauge className="h-8 w-8 text-primary" />
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs text-white/40 font-bold uppercase">ESP32 Status</p>
-                                        <p className="text-green-500 font-black flex items-center gap-1 justify-end">
-                                            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" /> Online
+                                        <p className="text-xs text-muted-foreground font-bold uppercase">ESP32 Status</p>
+                                        <p className="text-primary font-black flex items-center gap-1 justify-end">
+                                            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" /> Online
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                                        <p className="text-[10px] text-white/40 font-black uppercase mb-1">Live Surplus</p>
-                                        <p className="text-2xl font-black tracking-tighter">2.1 kW</p>
+                                    <div className="p-4 rounded-2xl bg-muted/50 clay-inset">
+                                        <p className="text-[10px] text-muted-foreground font-black uppercase mb-1">Live Surplus</p>
+                                        <p className="text-2xl font-black tracking-tighter text-foreground">2.1 kW</p>
                                     </div>
-                                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                                        <p className="text-[10px] text-white/40 font-black uppercase mb-1">Max Supply</p>
-                                        <p className="text-2xl font-black tracking-tighter">5.0 kW</p>
+                                    <div className="p-4 rounded-2xl bg-muted/50 clay-inset">
+                                        <p className="text-[10px] text-muted-foreground font-black uppercase mb-1">Max Supply</p>
+                                        <p className="text-2xl font-black tracking-tighter text-foreground">5.0 kW</p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <div className="p-8 rounded-[2rem] bg-gradient-to-br from-blue-600/20 via-transparent to-transparent border border-white/5">
-                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Info className="h-5 w-5 text-blue-400" /> Producer Perks
+                        <div className="p-8 rounded-2xl border border-primary/30 bg-primary/5 clay">
+                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
+                                <Info className="h-5 w-5 text-primary" /> Producer Perks
                             </h3>
-                            <ul className="space-y-3 text-sm text-white/60">
+                            <ul className="space-y-3 text-sm text-muted-foreground">
                                 <li className="flex items-start gap-2">
-                                    <ArrowUpCircle className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
+                                    <ArrowUpCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                     Earn ETH instantly on every neighbor purchase.
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <ArrowUpCircle className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
+                                    <ArrowUpCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                     Dynamic pricing optimizes your revenue based on scarcity.
                                 </li>
                             </ul>
@@ -210,43 +208,43 @@ export default function FeedGridPage() {
                     </div>
 
                     {/* Feed Form */}
-                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur-xl shadow-2xl">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Upload className="h-5 w-5 text-green-400" /> Listing Configuration
+                                <Upload className="h-5 w-5 text-primary" /> Listing Configuration
                             </CardTitle>
                             <CardDescription>Update the grid with your current surplus capacity</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/50">Supply Amount (Wh)</label>
+                                <label className="text-sm font-medium text-muted-foreground">Supply Amount (Wh)</label>
                                 <div className="relative">
                                     <Input
                                         type="number"
                                         placeholder="e.g. 5000"
                                         value={feedAmount}
                                         onChange={(e) => setFeedAmount(e.target.value)}
-                                        className="h-14 rounded-2xl border-white/10 bg-white/5 text-xl font-bold pl-12 focus-visible:ring-green-500/50"
+                                        className="h-14 rounded-2xl text-xl font-bold pl-12"
                                     />
                                     <Zap className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400" />
                                 </div>
-                                <p className="text-[10px] text-white/30 font-medium">This will be added to the total grid pool.</p>
+                                <p className="text-[10px] text-muted-foreground font-medium">This will be added to the total grid pool.</p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-white/50">Base Price (ETH / Wh)</label>
+                                <label className="text-sm font-medium text-muted-foreground">Base Price (ETH / Wh)</label>
                                 <Input
                                     type="number"
                                     step="0.0001"
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value)}
-                                    className="h-14 rounded-2xl border-white/10 bg-white/5 text-xl font-bold focus-visible:ring-blue-500/50"
+                                    className="h-14 rounded-2xl text-xl font-bold"
                                 />
                             </div>
 
                             <Button
                                 onClick={handleFeed}
-                                className="w-full h-16 rounded-2xl bg-gradient-to-r from-green-600 to-blue-600 font-black text-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="w-full h-16 rounded-2xl font-black text-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
                                 disabled={!isConnected || isFeedPending || !feedAmount || !isUserProducer}
                             >
                                 {isFeedPending ? (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Zap, TrendingUp, Users, Activity, Globe } from "lucide-react";
 
@@ -26,43 +27,46 @@ const priceHistory = [
     { day: "Day 7", price: 0.00023 },
 ];
 
-const COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7"];
+const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
 export default function AnalyticsPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line
         setMounted(true);
     }, []);
 
     if (!mounted) return null;
 
+    const stats = [
+        { label: "Total Transactions", value: "4,129", icon: Activity, iconBg: "bg-primary/10", iconColor: "text-primary" },
+        { label: "Avg. Energy Price", value: "0.00021 ETH", icon: TrendingUp, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+        { label: "Active Grid Nodes", value: "152", icon: Users, iconBg: "bg-chart-4/20", iconColor: "text-chart-4" },
+        { label: "Renewable Mix", value: "100%", icon: Zap, iconBg: "bg-chart-3/20", iconColor: "text-chart-3" },
+    ];
+
     return (
-        <div className="min-h-screen bg-black text-white pb-20">
+        <div className="min-h-screen bg-background text-foreground pb-20">
             <Navbar />
 
             <main className="container mx-auto px-4 pt-24">
                 <div className="mb-10 text-center lg:text-left">
-                    <h1 className="text-4xl font-black tracking-tight mb-2 uppercase italic italic-none tracking-normal">Grid Analytics</h1>
-                    <p className="text-white/50">Visualizing the flow of energy and value across the decentralized commons.</p>
+                    <h1 className="text-4xl font-black tracking-tight mb-2 text-foreground">Grid Analytics</h1>
+                    <p className="text-muted-foreground">Visualizing the flow of energy and value across the decentralized commons.</p>
                 </div>
 
                 {/* Global Stats */}
-                <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-                    {[
-                        { label: "Total Transactions", value: "4,129", icon: Activity, color: "text-blue-400" },
-                        { label: "Avg. Energy Price", value: "0.00021 ETH", icon: TrendingUp, color: "text-green-400" },
-                        { label: "Active Grid Nodes", value: "152", icon: Users, color: "text-purple-400" },
-                        { label: "Renewable Mix", value: "100%", icon: Zap, color: "text-orange-400" },
-                    ].map((stat, i) => (
-                        <Card key={i} className="border-white/10 bg-white/[0.02]">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{stat.label}</span>
+                <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-4">
+                    {stats.map((stat, i) => (
+                        <Card key={i}>
+                            <CardContent className="pt-6 pb-6">
+                                <div className="mb-3 flex items-center gap-3">
+                                    <div className={`h-11 w-11 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor}`}>
+                                        <stat.icon className="h-5 w-5" />
+                                    </div>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</span>
                                 </div>
-                                <div className="text-2xl font-black">{stat.value}</div>
+                                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
                             </CardContent>
                         </Card>
                     ))}
@@ -70,24 +74,29 @@ export default function AnalyticsPage() {
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Supply vs Demand */}
-                    <Card className="lg:col-span-2 border-white/10 bg-white/[0.02] backdrop-blur-xl">
+                    <Card className="lg:col-span-2">
                         <CardHeader>
-                            <CardTitle>Grid Supply vs. Local Demand</CardTitle>
+                            <CardTitle className="text-foreground">Grid Supply vs. Local Demand</CardTitle>
                             <CardDescription>Aggregate performance across the entire network</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[350px] w-full pt-6">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={gridData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-                                        <XAxis dataKey="name" stroke="#ffffff30" fontSize={11} axisLine={false} tickLine={false} />
-                                        <YAxis stroke="#ffffff30" fontSize={11} axisLine={false} tickLine={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                                        <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} axisLine={false} tickLine={false} />
+                                        <YAxis stroke="var(--muted-foreground)" fontSize={12} axisLine={false} tickLine={false} />
                                         <Tooltip
-                                            cursor={{ fill: "#ffffff05" }}
-                                            contentStyle={{ backgroundColor: "#000", border: "1px solid #ffffff10", borderRadius: "12px" }}
+                                            cursor={{ fill: "var(--muted)" }}
+                                            contentStyle={{
+                                                backgroundColor: "var(--card)",
+                                                border: "1px solid var(--border)",
+                                                borderRadius: "12px",
+                                                color: "var(--card-foreground)",
+                                            }}
                                         />
-                                        <Bar dataKey="supply" fill="#f97316" radius={[4, 4, 0, 0]} name="Energy Supply" />
-                                        <Bar dataKey="demand" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Consumer Demand" />
+                                        <Bar dataKey="supply" fill="var(--chart-1)" radius={[4, 4, 0, 0]} name="Energy Supply" />
+                                        <Bar dataKey="demand" fill="var(--chart-2)" radius={[4, 4, 0, 0]} name="Consumer Demand" />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -95,35 +104,44 @@ export default function AnalyticsPage() {
                     </Card>
 
                     {/* Pricing Trends */}
-                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur-xl">
+                    <Card>
                         <CardHeader>
-                            <CardTitle>Price Discovery</CardTitle>
+                            <CardTitle className="text-foreground">Price Discovery</CardTitle>
                             <CardDescription>Dynamic pricing over time</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[250px] w-full pt-4">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={priceHistory}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                                        <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={12} axisLine={false} tickLine={false} />
+                                        <YAxis stroke="var(--muted-foreground)" fontSize={12} axisLine={false} tickLine={false} unit=" ETH" />
+                                        <Tooltip
+                                            cursor={{ fill: "var(--muted)" }}
+                                            contentStyle={{
+                                                backgroundColor: "var(--card)",
+                                                border: "1px solid var(--border)",
+                                                borderRadius: "12px",
+                                                color: "var(--card-foreground)",
+                                            }}
+                                            formatter={(value: number) => [value.toFixed(5) + " ETH", "Price"]}
+                                        />
                                         <Bar dataKey="price" radius={[4, 4, 0, 0]} name="Price (ETH)">
-                                            {priceHistory.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            {priceHistory.map((_, index) => (
+                                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                                             ))}
                                         </Bar>
-                                        <Tooltip
-                                            cursor={{ fill: "#ffffff05" }}
-                                            contentStyle={{ backgroundColor: "#000", border: "1px solid #ffffff10", borderRadius: "12px" }}
-                                        />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
-                            <div className="mt-8 p-4 rounded-2xl bg-white/5 border border-white/5">
+                            <div className="mt-8 p-4 rounded-2xl bg-muted/50 clay-inset border border-border/50">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                                        <TrendingUp className="h-5 w-5 text-green-500" />
+                                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                        <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold">Price Stability: High</p>
-                                        <p className="text-[10px] text-white/30 uppercase font-black">Volatility: +/- 4%</p>
+                                        <p className="text-sm font-bold text-foreground">Price Stability: High</p>
+                                        <p className="text-xs text-muted-foreground uppercase font-semibold">Volatility: +/- 4%</p>
                                     </div>
                                 </div>
                             </div>
@@ -133,35 +151,21 @@ export default function AnalyticsPage() {
 
                 {/* Impact Map Preview */}
                 <section className="mt-12">
-                    <Card className="border-white/10 bg-gradient-to-br from-orange-600/10 via-black to-black border-dashed">
+                    <Card className="border-dashed border-primary/30 bg-primary/5">
                         <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                            <Globe className="h-16 w-16 text-white/10 mb-6" />
-                            <h2 className="text-2xl font-bold mb-4">Grid Geography</h2>
-                            <p className="max-w-md text-white/40 mb-8 font-medium">
+                            <Globe className="h-16 w-16 text-muted-foreground/40 mb-6" />
+                            <h2 className="text-2xl font-bold mb-4 text-foreground">Grid Geography</h2>
+                            <p className="max-w-md text-muted-foreground mb-8 font-medium">
                                 Our network topology maps how energy flows through the physical grid,
                                 optimizing for minimal line loss.
                             </p>
-                            <Badge variant="outline" className="text-[10px] font-black tracking-widest uppercase border-white/20">
-                                Coming Soon - Interactive Map
+                            <Badge variant="outline" className="text-xs font-semibold uppercase tracking-wider">
+                                Coming Soon — Interactive Map
                             </Badge>
                         </CardContent>
                     </Card>
                 </section>
             </main>
         </div>
-    );
-}
-
-interface BadgeProps {
-    children: React.ReactNode;
-    className?: string;
-    variant?: "outline" | "default";
-}
-
-function Badge({ children, className }: BadgeProps) {
-    return (
-        <span className={`px-2 py-1 rounded inline-block ${className}`}>
-            {children}
-        </span>
     );
 }
