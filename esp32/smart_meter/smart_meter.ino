@@ -14,11 +14,11 @@
 #include <ArduinoJson.h>
 
 // --- CONFIGURATION ---
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "varun";
+const char* password = "ahwn1234";
 
 // Your laptop's local IP address (e.g., 192.168.1.105)
-const char* serverUrl = "http://192.168.x.x:3000/api/meter";
+const char* serverUrl = "http://103.94.67.27/api/meter";
 
 // Meter Unique ID and API Key (from .env)
 const char* meterId = "METER_001_HACK";
