@@ -43,3 +43,10 @@ next-env.d.ts
 # infrastructure data
 /infra/mongodb/data
 /infra/mosquitto/data
+
+# Foundry
+blockchain/cache/
+blockchain/broadcast/
+blockchain/out/build-info/
+blockchain/out/Deploy.s.sol/
+blockchain/out/Script.sol/

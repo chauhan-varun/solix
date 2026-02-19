@@ -14,8 +14,8 @@
 #include <ArduinoJson.h>
 
 // --- CONFIGURATION ---
-const char* ssid = "aivar";
-const char* password = "ahwn1234";
+const char* ssid = "bhawna";
+const char* password = "bhawnaaa";
 
 // MQTT Broker Address (Oracle Server IP or Local IP)
 const char* mqttServer = "141.148.214.59"; // Update this to your MQTT broker IP
@@ -39,15 +39,23 @@ void setup_wifi() {
 
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  int attempts = 0;
+  const int maxAttempts = 20;  // 10 seconds timeout
+
+  while (WiFi.status() != WL_CONNECTED && attempts < maxAttempts) {
     delay(500);
     Serial.print(".");
+    attempts++;
   }
 
   Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("WiFi connected");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("WiFi connection FAILED - check SSID/password and retry");
+  }
 }
 
 void reconnect() {
