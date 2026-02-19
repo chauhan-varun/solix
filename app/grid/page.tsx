@@ -38,7 +38,7 @@ export default function GridPage() {
             return;
         }
 
-        const pricePerUnit = gridStatus?.pricePerUnit || 0n;
+        const pricePerUnit = gridStatus?.pricePerUnit || BigInt(0);
         const totalCost = BigInt(Math.floor(parseFloat(buyAmount))) * pricePerUnit;
 
         writeContract({
@@ -93,7 +93,7 @@ export default function GridPage() {
                             <div className="p-4 rounded-2xl bg-white/5 space-y-1">
                                 <p className="text-xs text-white/40 font-bold uppercase">Dynamic Price</p>
                                 <div className="text-3xl font-black text-green-400">
-                                    {isGridLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${formatEther(gridStatus?.pricePerUnit || 0n)} ETH/Wh`}
+                                    {isGridLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${formatEther(gridStatus?.pricePerUnit || BigInt(0))} ETH/Wh`}
                                 </div>
                                 <p className="text-[10px] text-white/30 flex items-center gap-1">
                                     <TrendingUp className="h-3 w-3" /> Updated 2m ago
@@ -135,12 +135,12 @@ export default function GridPage() {
                                     <div>
                                         <p className="text-xs text-white/40 font-bold uppercase">Estimated Cost</p>
                                         <p className="text-xl font-black">
-                                            {buyAmount ? (parseFloat(buyAmount) * parseFloat(formatEther(gridStatus?.pricePerUnit || 0n))).toFixed(6) : "0.000000"} ETH
+                                            {buyAmount ? (parseFloat(buyAmount) * parseFloat(formatEther(gridStatus?.pricePerUnit || BigInt(0)))).toFixed(6) : "0.000000"} ETH
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-white/40 font-bold uppercase">Your Balance</p>
-                                        <p className="text-sm font-medium text-white/60">{parseFloat(balance?.formatted || "0").toFixed(4)} ETH</p>
+                                        <p className="text-sm font-medium text-white/60">{balance ? parseFloat(formatEther(balance.value)).toFixed(4) : "0.0000"} ETH</p>
                                     </div>
                                 </div>
                             </div>

@@ -167,7 +167,7 @@ export default function DashboardPage() {
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                                         <XAxis dataKey="time" stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} units="kW" />
+                                        <YAxis stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} unit="kW" />
                                         <Tooltip
                                             contentStyle={{ backgroundColor: "#000", border: "1px solid #ffffff20", borderRadius: "12px" }}
                                             itemStyle={{ color: "#fff" }}

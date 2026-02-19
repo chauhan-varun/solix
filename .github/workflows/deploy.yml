@@ -45,4 +45,4 @@ jobs:
           script: |
             cd ~/solix
             git pull origin dev
-            docker compose up -d --build
+            

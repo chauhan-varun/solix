@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Zap, ExternalLink, ArrowRight, User } from "lucide-react";
 import { useAccount, useReadContract } from "wagmi";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";

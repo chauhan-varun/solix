@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid data" }, { status: 400 });
         }
 
-        const surplus = Math.max(0, production - consumption);
+        const prodNum = parseFloat(production);
+        const consNum = parseFloat(consumption);
+        const surplus = Math.max(0, prodNum - consNum);
 
         // Find user by meterId
         const user = await prisma.user.findFirst({
@@ -29,9 +31,9 @@ export async function POST(req: NextRequest) {
             data: {
                 meterId,
                 walletAddress: user.walletAddress,
-                production: parseFloat(production),
-                consumption: parseFloat(consumption),
-                surplus: parseFloat(surplus),
+                production: prodNum,
+                consumption: consNum,
+                surplus: surplus,
             },
         });
 
