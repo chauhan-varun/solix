@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-
+services/mqtt_bridge/node_modules
 # next.js
 /.next/
 /out/
