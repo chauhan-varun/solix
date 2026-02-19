@@ -26,6 +26,8 @@ jobs:
         
       - name: Generate Prisma Client
         run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Lint
         run: pnpm run lint
