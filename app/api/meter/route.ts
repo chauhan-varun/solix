@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(reading || null);
     } catch (error) {
+        console.error("Meter GET error:", error);
         return NextResponse.json({ error: "Failed to fetch reading" }, { status: 500 });
     }
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Zap, TrendingUp, Users, Activity, Globe } from "lucide-react";
 
 const gridData = [
@@ -32,6 +32,7 @@ export default function AnalyticsPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
 
@@ -151,7 +152,13 @@ export default function AnalyticsPage() {
     );
 }
 
-function Badge({ children, className, variant }: any) {
+interface BadgeProps {
+    children: React.ReactNode;
+    className?: string;
+    variant?: "outline" | "default";
+}
+
+function Badge({ children, className }: BadgeProps) {
     return (
         <span className={`px-2 py-1 rounded inline-block ${className}`}>
             {children}

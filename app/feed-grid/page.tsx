@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Zap, Upload, ArrowUpCircle, Info, Loader2, Gauge } from "lucide-react";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";
-import { parseEther, formatEther } from "viem";
+import { parseEther } from "viem";
 import { toast } from "sonner";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
@@ -20,14 +20,22 @@ export default function FeedGridPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
+
+    interface GridStatus {
+        producer: string;
+        totalSupply: bigint;
+        pricePerUnit: bigint;
+        lastUpdated: bigint;
+    }
 
     const { data: gridStatus } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: EnergyTradingABI.abi,
         functionName: "getGridStatus",
-    }) as any;
+    }) as { data: GridStatus | undefined };
 
     const { writeContract, isPending: isFeedPending } = useWriteContract();
 

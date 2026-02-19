@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { publicClient } from "@/lib/blockchain-client";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
+
+interface GridStatus {
+    producer: string;
+    totalSupply: bigint;
+    pricePerUnit: bigint;
+    lastUpdated: bigint;
+}
 
 export async function GET() {
     try {
@@ -14,7 +21,7 @@ export async function GET() {
             address: CONTRACT_ADDRESS,
             abi: EnergyTradingABI.abi,
             functionName: "getGridStatus",
-        }) as any;
+        }) as GridStatus;
 
         return NextResponse.json({
             producer: gridStatus.producer,

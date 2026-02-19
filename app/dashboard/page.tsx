@@ -15,8 +15,6 @@ import {
     ShoppingCart
 } from "lucide-react";
 import {
-    LineChart,
-    Line,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -43,6 +41,7 @@ export default function DashboardPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
 

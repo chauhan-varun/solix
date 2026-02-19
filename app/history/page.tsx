@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Zap, ExternalLink, ArrowRight, User } from "lucide-react";
+import { Zap, ExternalLink, User } from "lucide-react";
 import { useAccount, useReadContract } from "wagmi";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";
 import { formatEther } from "viem";
@@ -18,15 +18,24 @@ export default function HistoryPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
+
+    interface Trade {
+        producer: string;
+        buyer: string;
+        energyAmount: bigint;
+        totalPrice: bigint;
+        timestamp: bigint;
+    }
 
     const { data: userTrades, isLoading } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: EnergyTradingABI.abi,
         functionName: "getUserTrades",
         args: [address],
-    }) as any;
+    }) as { data: Trade[] | undefined, isLoading: boolean };
 
     if (!mounted) return null;
 
@@ -64,8 +73,8 @@ export default function HistoryPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isConnected && userTrades?.length > 0 ? (
-                                    userTrades.map((trade: any, i: number) => {
+                                {isConnected && userTrades && userTrades.length > 0 ? (
+                                    userTrades.map((trade, i) => {
                                         const isBuyer = trade.buyer.toLowerCase() === address?.toLowerCase();
                                         return (
                                             <TableRow key={i} className="border-white/5 hover:bg-white/[0.03] transition-colors">

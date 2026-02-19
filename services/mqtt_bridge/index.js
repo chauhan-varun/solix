@@ -1,5 +1,5 @@
-const mqtt = require('mqtt');
-const { MongoClient } = require('mongodb');
+import mqtt from 'mqtt';
+import { MongoClient } from 'mongodb';
 
 const mqttUrl = process.env.MQTT_BROKER || 'mqtt://localhost:1883';
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/solix';

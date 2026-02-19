@@ -2,6 +2,7 @@
     "name": "mqtt-bridge",
     "version": "1.0.0",
     "description": "Bridge between MQTT and MongoDB",
+    "type": "module",
     "main": "index.js",
     "scripts": {
         "start": "node index.js"

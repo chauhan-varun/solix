@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Zap, ShoppingCart, TrendingUp, Info, Loader2 } from "lucide-react";
 import { useAccount, useReadContract, useWriteContract, useBalance } from "wagmi";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";
-import { formatEther, parseEther } from "viem";
+import { formatEther } from "viem";
 import { toast } from "sonner";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
@@ -22,11 +22,18 @@ export default function GridPage() {
         setMounted(true);
     }, []);
 
+    interface GridStatus {
+        producer: string;
+        totalSupply: bigint;
+        pricePerUnit: bigint;
+        lastUpdated: bigint;
+    }
+
     const { data: gridStatus, isLoading: isGridLoading } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: EnergyTradingABI.abi,
         functionName: "getGridStatus",
-    }) as any;
+    }) as { data: GridStatus | undefined, isLoading: boolean };
 
     const { data: balance } = useBalance({ address });
 
