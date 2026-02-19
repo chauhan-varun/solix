@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Zap, Upload, ArrowUpCircle, Info, Loader2, Gauge } from "lucide-react";
-import { useAccount, useReadContract, useWriteContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useChainId, useSwitchChain } from "wagmi";
 import EnergyTradingABI from "@/blockchain/out/EnergyTrading.sol/EnergyTrading.json";
 import { parseEther } from "viem";
+import { sepolia } from "viem/chains";
 import { toast } from "sonner";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
@@ -37,7 +38,51 @@ export default function FeedGridPage() {
         functionName: "getGridStatus",
     }) as { data: GridStatus | undefined };
 
+    const { data: userData } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: EnergyTradingABI.abi,
+        functionName: "users",
+        args: address ? [address] : undefined,
+    }) as { data: [string, number, boolean] | undefined };
+
     const { writeContract, isPending: isFeedPending } = useWriteContract();
+    const chainId = useChainId();
+    const { switchChain } = useSwitchChain();
+
+    const isUserProducer = gridStatus?.producer?.toLowerCase() === address?.toLowerCase();
+    const noProducerYet = !gridStatus?.producer || gridStatus.producer === "0x0000000000000000000000000000000000000000";
+    const isRegistered = userData?.[2] === true;
+    const isConsumer = userData?.[1] === 1;
+    const isOnSepolia = chainId === sepolia.id;
+
+    const getRevertMessage = (err: unknown): string => {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Already registered")) return "You're already registered. If you registered as Consumer, you cannot become Producer.";
+        if (msg.includes("Producer already exists")) return "A producer is already registered for this grid.";
+        if (msg.includes("User rejected") || msg.includes("user rejected")) return "Transaction was rejected.";
+        return msg;
+    };
+
+    const handleRegisterProducer = async () => {
+        if (!isOnSepolia) {
+            switchChain?.({ chainId: sepolia.id });
+            toast.error("Please switch to Sepolia network first.");
+            return;
+        }
+        if (!CONTRACT_ADDRESS) {
+            toast.error("Contract not configured. Set NEXT_PUBLIC_CONTRACT_ADDRESS.");
+            return;
+        }
+        writeContract({
+            address: CONTRACT_ADDRESS,
+            abi: EnergyTradingABI.abi,
+            functionName: "registerUser",
+            args: ["Producer", 0], // Role.Producer = 0
+        }, {
+            onSuccess: () => toast.success("Registered as producer! You can now feed the grid."),
+            onError: (err) => toast.error("Registration failed: " + getRevertMessage(err)),
+        });
+    };
 
     const handleFeed = async () => {
         if (!feedAmount || parseFloat(feedAmount) <= 0) {
@@ -63,8 +108,6 @@ export default function FeedGridPage() {
 
     if (!mounted) return null;
 
-    const isUserProducer = gridStatus?.producer?.toLowerCase() === address?.toLowerCase();
-
     return (
         <div className="min-h-screen bg-black text-white pb-20">
             <Navbar />
@@ -79,9 +122,43 @@ export default function FeedGridPage() {
                 </div>
 
                 {!isUserProducer && isConnected && (
-                    <div className="mb-8 mx-auto max-w-2xl p-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 text-center">
-                        <p className="text-yellow-500 font-bold">⚠️ Unauthorized Role</p>
-                        <p className="text-xs text-white/50">Only the registered grid producer can feed energy. If you are not Ravi, you can only be a consumer.</p>
+                    <div className="mb-8 mx-auto max-w-2xl p-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 space-y-3">
+                        {!isOnSepolia ? (
+                            <>
+                                <p className="text-yellow-500 font-bold text-center">Wrong network</p>
+                                <p className="text-xs text-white/50 text-center">Switch to Sepolia to interact with the grid.</p>
+                                <Button
+                                    onClick={() => switchChain?.({ chainId: sepolia.id })}
+                                    variant="outline"
+                                    className="w-full border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+                                >
+                                    Switch to Sepolia
+                                </Button>
+                            </>
+                        ) : noProducerYet && !isRegistered ? (
+                            <>
+                                <p className="text-yellow-500 font-bold text-center">No producer registered yet</p>
+                                <p className="text-xs text-white/50 text-center">Be the first to register as the grid producer and start feeding surplus energy.</p>
+                                <Button
+                                    onClick={handleRegisterProducer}
+                                    variant="outline"
+                                    className="w-full border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+                                    disabled={isFeedPending}
+                                >
+                                    {isFeedPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</> : "Register as Producer"}
+                                </Button>
+                            </>
+                        ) : noProducerYet && isRegistered && isConsumer ? (
+                            <>
+                                <p className="text-yellow-500 font-bold text-center">Already registered as Consumer</p>
+                                <p className="text-xs text-white/50 text-center">You registered as a consumer. Each wallet can only have one role—you can buy from the grid but cannot become the producer.</p>
+                            </>
+                        ) : !noProducerYet ? (
+                            <>
+                                <p className="text-yellow-500 font-bold text-center">Unauthorized Role</p>
+                                <p className="text-xs text-white/50 text-center">Only the registered grid producer can feed energy. You can buy from the grid as a consumer.</p>
+                            </>
+                        ) : null}
                     </div>
                 )}
 
@@ -170,7 +247,7 @@ export default function FeedGridPage() {
                             <Button
                                 onClick={handleFeed}
                                 className="w-full h-16 rounded-2xl bg-gradient-to-r from-green-600 to-blue-600 font-black text-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
-                                disabled={!isConnected || isFeedPending || !feedAmount}
+                                disabled={!isConnected || isFeedPending || !feedAmount || !isUserProducer}
                             >
                                 {isFeedPending ? (
                                     <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> Transacting...</>

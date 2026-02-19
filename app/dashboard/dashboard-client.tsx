@@ -33,28 +33,25 @@ export interface ReadingData {
     consumption: number;
 }
 
-export interface DashboardInitialData {
-    history: ReadingData[];
-    live: { production: number; consumption: number; surplus: number } | null;
-}
-
-interface DashboardClientProps {
-    initialData: DashboardInitialData;
-}
-
-export function DashboardClient({ initialData }: DashboardClientProps) {
+export function DashboardClient() {
     const { isConnected, address } = useAccount();
     const [mounted, setMounted] = useState(false);
-    const [history, setHistory] = useState<ReadingData[]>(initialData.history);
-    const [stats, setStats] = useState<{ production: number; consumption: number; surplus: number }>(
-        initialData.live ?? { production: 0, consumption: 0, surplus: 0 }
-    );
-    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState<ReadingData[]>([]);
+    const [stats, setStats] = useState<{ production: number; consumption: number; surplus: number }>({
+        production: 0,
+        consumption: 0,
+        surplus: 0,
+    });
+    const [loading, setLoading] = useState(true);
     const [meterId, setMeterId] = useState("");
     const [isLinking, setIsLinking] = useState(false);
 
-    const fetchData = async () => {
-        if (!address) return;
+    const fetchData = async (showLoading = true) => {
+        if (!address) {
+            setLoading(false);
+            return;
+        }
+        if (showLoading) setLoading(true);
         try {
             const res = await fetch(`/api/readings?address=${address}`);
             const data = await res.json();
@@ -97,9 +94,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     useEffect(() => {
         if (isConnected && address) {
-            fetchData();
-            const interval = setInterval(fetchData, 5000); // Realtime: poll every 5 seconds
+            fetchData(true); // Initial load with loading state
+            const interval = setInterval(() => fetchData(false), 5000); // Realtime: poll every 5s, no loading flash
             return () => clearInterval(interval);
+        } else {
+            setLoading(false);
         }
     }, [isConnected, address]);
 

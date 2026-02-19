@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import prismaConfig from '@/prisma.config';
 
 export interface ReadingData {
     time: string;
@@ -25,7 +24,7 @@ export async function getRecentReadings(walletAddress: string, limit: number = 2
             consumption: r.consumption
         }));
     } catch (error) {
-        console.error("Error fetching readings:", error);
+        console.error("Readings fetch failed:", error instanceof Error ? error.message : "Unknown");
         return [];
     }
 }
@@ -48,7 +47,7 @@ export async function getLiveStats(walletAddress: string) {
             surplus: latestReading.surplus
         };
     } catch (error) {
-        console.error("Error fetching live stats:", error);
+        console.error("Live stats fetch failed:", error instanceof Error ? error.message : "Unknown");
         return null;
     }
 }
