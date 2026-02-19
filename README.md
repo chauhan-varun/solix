@@ -6,6 +6,37 @@ A **decentralized energy grid** built on **Ethereum Sepolia** where a single pro
 
 ---
 
+## System Architecture
+
+```mermaid
+graph LR
+    subgraph ClientLayer ["Frontend (Next.js)"]
+        UI["Web Dashboard"]
+        Wagmi["Wagmi / RainbowKit"]
+    end
+
+    subgraph LogicLayer ["Backend & Storage"]
+        API["Next.js API Routes"]
+        DB[(MongoDB / Prisma)]
+    end
+
+    subgraph HardwareLayer ["IoT Device"]
+        ESP["ESP32 Smart Meter"]
+    end
+
+    subgraph NetworkLayer ["Blockchain (Sepolia)"]
+        SC["EnergyTrading Smart Contract"]
+    end
+
+    ESP -- "Push Readings" --> API
+    API -- "CRUD" --> DB
+    UI -- "Fetch Data" --> API
+    UI -- "Sign & Transact" --> Wagmi
+    Wagmi -- "Execute Tx" --> SC
+```
+
+---
+
 ## End-to-End Flow
 
 ```mermaid
@@ -75,6 +106,35 @@ flowchart TD
 | 6 | Consumer clicks **"Buy from Grid"** → pays ETH | On-chain (Sepolia) |
 | 7 | **Producer gets paid** automatically via smart contract | On-chain (Sepolia) |
 | 8 | Trade recorded permanently → viewable on Etherscan | On-chain (Sepolia) |
+
+---
+
+## Technical Approach (Sequence)
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant ESP as ESP32 Meter
+    participant S as Next.js Server
+    participant C as Consumer
+    participant SC as Smart Contract
+
+    Note over ESP, S: Automatic Monitoring
+    ESP->>S: POST /api/meter (Surplus: 5.0 kWh)
+    S->>S: Update MongoDB
+    
+    Note over P, SC: Production Flow
+    P->>SC: registerUser("Producer")
+    P->>SC: feedGrid(5.0 kWh)
+    Note right of SC: Grid Supply: 5.0 kWh
+
+    Note over C, SC: Consumption Flow
+    C->>SC: registerUser("Consumer")
+    C->>SC: buyFromGrid(2.0 kWh) + ETH
+    SC->>SC: Deduct Grid Supply: -2.0 kWh
+    SC->>P: Transfer ETH Payment
+    Note right of SC: Grid Supply: 3.0 kWh
+```
 
 ---
 
