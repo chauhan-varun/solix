@@ -1,163 +1,128 @@
-# ⚡ Peer-to-Peer Energy Trading Platform
+# ⚡ Solix: Peer-to-Peer Energy Trading Platform
 
-A **decentralized energy grid** built on **Ethereum Sepolia** where a single producer feeds surplus solar energy into the grid, and consumers purchase it — with the producer getting paid directly via smart contracts.
+Solix is a **decentralized energy grid** built on **Ethereum Sepolia**. It enables a P2P energy ecosystem where producers (with solar setups) can feed surplus energy into the grid, and consumers can purchase it directly. The entire transaction flow is handled by smart contracts, ensuring transparency and direct payments to producers.
 
-> **Stack:** Next.js 14 · Solidity/Foundry · ESP32 IoT · MongoDB · RainbowKit/Wagmi
+> **Stack:** Next.js 15 (App Router) · Solidity/Foundry · ESP32 IoT · MongoDB/Prisma · MQTT · Tailwind CSS · RainbowKit/Wagmi
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
-graph LR
-    subgraph ClientLayer ["Frontend (Next.js)"]
-        UI["Web Dashboard"]
-        Wagmi["Wagmi / RainbowKit"]
+graph TD
+    subgraph IoT_Layer ["Hardware & Edge"]
+        ESP["ESP32 Smart Meter"]
+        MQTT_B["Mosquitto MQTT Broker"]
     end
 
-    subgraph LogicLayer ["Backend & Storage"]
+    subgraph Service_Layer ["Backend Services"]
+        Bridge["MQTT-to-DB Bridge (Node.js)"]
+    end
+
+    subgraph Platform_Layer ["Web Application"]
+        Frontend["Next.js App Router (UI)"]
         API["Next.js API Routes"]
         DB[(MongoDB / Prisma)]
     end
 
-    subgraph HardwareLayer ["IoT Device"]
-        ESP["ESP32 Smart Meter"]
+    subgraph Blockchain_Layer ["On-Chain (Sepolia)"]
+        SC["EnergyTrading.sol"]
+        Wagmi["Wagmi / RainbowKit"]
     end
 
-    subgraph NetworkLayer ["Blockchain (Sepolia)"]
-        SC["EnergyTrading Smart Contract"]
-    end
-
-    ESP -- "Push Readings" --> API
-    API -- "CRUD" --> DB
-    UI -- "Fetch Data" --> API
-    UI -- "Sign & Transact" --> Wagmi
+    ESP -- "Publish JSON Data" --> MQTT_B
+    MQTT_B -- "Subscribe" --> Bridge
+    Bridge -- "Store Readings" --> DB
+    Frontend -- "Fetch Readings" --> API
+    API -- "Query" --> DB
+    Frontend -- "Web3 Interaction" --> Wagmi
     Wagmi -- "Execute Tx" --> SC
 ```
 
 ---
 
-## End-to-End Flow
+## 🚦 End-to-End Flow
 
-```mermaid
-flowchart TD
-    subgraph IoT["🔌 ESP32 Smart Meter"]
-        A["Solar Panel Readings\n(production, consumption, surplus)"]
-    end
-
-    subgraph Server["🖥️ Next.js Server (Off-Chain)"]
-        B["/api/meter\n(receives ESP32 data)"]
-        C[("MongoDB\n(meter readings, profiles, analytics)")]
-    end
-
-    subgraph Frontend["🌐 Web App (Browser)"]
-        D["Producer Dashboard\n(live ESP32 data, surplus view)"]
-        E["Grid Dashboard\n(available energy, dynamic price)"]
-        F["Consumer View\n(buy energy from grid)"]
-        G["Trade History & Analytics"]
-    end
-
-    subgraph Blockchain["⛓️ Ethereum Sepolia (On-Chain)"]
-        H["EnergyTrading.sol"]
-        I["registerUser()"]
-        J["feedGrid()\n(producer pushes surplus to grid)"]
-        K["buyFromGrid()\n(consumer pays, ETH goes to producer)"]
-        L["getDynamicPrice()\n(supply vs demand pricing)"]
-        M[("Immutable Trade Records\n(viewable on Etherscan)")]
-    end
-
-    %% ESP32 to Server
-    A -- "HTTP POST every 5s\n(WiFi, same network)" --> B
-    B -- "Store readings" --> C
-    C -- "Fetch latest data" --> D
-
-    %% Producer flow
-    D -- "Producer clicks\n'Feed Grid'" --> J
-    I -- "Register as\nProducer / Consumer" --> H
-    J -- "Surplus energy\nadded to grid" --> H
-
-    %% Consumer flow
-    E -- "View grid supply\n& dynamic price" --> L
-    L --> H
-    F -- "Consumer clicks\n'Buy from Grid'" --> K
-    K -- "ETH payment\nProducer ← Consumer" --> H
-    H -- "Trade recorded" --> M
-
-    %% Display
-    M -- "Tx hash link to\nEtherscan" --> G
-    C -- "Charts & stats" --> G
-
-    %% Styling
-    style IoT fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
-    style Server fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
-    style Frontend fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px
-    style Blockchain fill:#dcfce7,stroke:#22c55e,stroke-width:2px
-```
-
-### Flow Summary
-
-| Step | Action | Where |
-|------|--------|-------|
-| 1 | ESP32 smart meter sends solar readings every 5s | Off-chain (MongoDB) |
-| 2 | **Producer** connects wallet & registers | On-chain (Sepolia) |
-| 3 | Producer clicks **"Feed Grid"** → surplus enters the grid | On-chain (Sepolia) |
-| 4 | **Consumer** connects wallet & registers | On-chain (Sepolia) |
-| 5 | Consumer views grid supply & dynamic price | On-chain read |
-| 6 | Consumer clicks **"Buy from Grid"** → pays ETH | On-chain (Sepolia) |
-| 7 | **Producer gets paid** automatically via smart contract | On-chain (Sepolia) |
-| 8 | Trade recorded permanently → viewable on Etherscan | On-chain (Sepolia) |
+1.  **Generation**: ESP32 Smart Meter measures solar production and home consumption.
+2.  **Transmission**: ESP32 publishes data to a Mosquitto MQTT broker every 5 seconds.
+3.  **Bridging**: A dedicated Node.js service (`mqtt_bridge`) listens to MQTT topics and persists readings into MongoDB via Prisma.
+4.  **Registration**: Users connect their wallets (MetaMask) and register as Producers or Consumers on-chain.
+5.  **Trading**:
+    *   **Producers** click "Feed Grid" to list their surplus energy on the smart contract.
+    *   **Consumers** browse the grid and buy energy using ETH.
+6.  **Settlement**: Smart contracts automatically transfer ETH from Consumer to Producer and record the immutable transaction.
 
 ---
 
-## Technical Approach (Sequence)
+## 📁 Directory Structure
 
-```mermaid
-sequenceDiagram
-    participant P as Producer
-    participant ESP as ESP32 Meter
-    participant S as Next.js Server
-    participant C as Consumer
-    participant SC as Smart Contract
-
-    Note over ESP, S: Automatic Monitoring
-    ESP->>S: POST /api/meter (Surplus: 5.0 kWh)
-    S->>S: Update MongoDB
-    
-    Note over P, SC: Production Flow
-    P->>SC: registerUser("Producer")
-    P->>SC: feedGrid(5.0 kWh)
-    Note right of SC: Grid Supply: 5.0 kWh
-
-    Note over C, SC: Consumption Flow
-    C->>SC: registerUser("Consumer")
-    C->>SC: buyFromGrid(2.0 kWh) + ETH
-    SC->>SC: Deduct Grid Supply: -2.0 kWh
-    SC->>P: Transfer ETH Payment
-    Note right of SC: Grid Supply: 3.0 kWh
-```
+| Directory | Description |
+|-----------|-------------|
+| [`app/`](file:///home/varun/web/solix/app) | Next.js 15 frontend and API routes. |
+| [`blockchain/`](file:///home/varun/web/solix/blockchain) | Foundry project for Solidity smart contracts. |
+| [`esp32/`](file:///home/varun/web/solix/esp32) | Firmware for the ESP32 smart meter (Arduino C++). |
+| [`services/mqtt_bridge/`](file:///home/varun/web/solix/services/mqtt_bridge) | Node.js service that syncs MQTT data to the database. |
+| [`prisma/`](file:///home/varun/web/solix/prisma) | Database schema and migrations (MongoDB). |
+| [`components/`](file:///home/varun/web/solix/components) | Reusable UI components (Shadcn UI). |
+| [`docs/`](file:///home/varun/web/solix/docs) | Project documentation and flow charts. |
 
 ---
 
-## Getting Started
+## 🛠️ Tech Stack
 
+*   **Frontend**: Next.js 15, Tailwind CSS, Shadcn UI, Lucide Icons.
+*   **Web3**: RainbowKit, Wagmi, Viem.
+*   **Backend**: Prisma ORM, MongoDB.
+*   **IoT**: ESP32, MQTT (Mosquitto), ArduinoJson.
+*   **Blockchain**: Solidity, Foundry (Forge/Cast).
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+*   Node.js (v18+)
+*   pnpm
+*   MongoDB Instance
+*   Mosquitto MQTT Broker
+*   Foundry (for blockchain development)
+
+### 2. Environment Configuration
+Create a `.env` file in the root:
+```env
+DATABASE_URL="mongodb+srv://..."
+NEXT_PUBLIC_WC_PROJECT_ID="your_walletconnect_project_id"
+MQTT_BROKER="mqtt://your-broker-ip:1883"
+```
+
+### 3. Installation
 ```bash
+# Install dependencies
 pnpm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Start development server
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+### 4. Running the MQTT Bridge
+```bash
+cd services/mqtt_bridge
+npm install
+npm start
+```
+
+### 5. Smart Contract Deployment
+```bash
+cd blockchain
+forge build
+# Deploy to Sepolia (update script as needed)
+forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast
+```
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Fullstack | Next.js 14 (App Router) |
-| Styling | Tailwind CSS |
-| Wallet | RainbowKit + Wagmi |
-| Database | MongoDB (Prisma) |
-| Blockchain | Solidity + Foundry |
-| Network | Ethereum Sepolia Testnet |
-| IoT | ESP32 (Arduino C++) |
-| Charts | Recharts |
+## 📝 License
+MIT

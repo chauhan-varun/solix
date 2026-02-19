@@ -1,3 +1,4 @@
+import { getAddress } from 'viem';
 import { prisma } from '@/lib/prisma';
 
 export interface ReadingData {
@@ -6,13 +7,30 @@ export interface ReadingData {
     consumption: number;
 }
 
+/** Normalize Ethereum address for consistent DB queries (handles checksum/case) */
+function normalizeAddress(addr: string): string {
+    try {
+        return getAddress(addr);
+    } catch {
+        return addr.toLowerCase();
+    }
+}
+
 /**
  * Fetches the last N readings for a specific user to populate the dashboard chart.
  */
 export async function getRecentReadings(walletAddress: string, limit: number = 20): Promise<ReadingData[]> {
     try {
+        const normalized = normalizeAddress(walletAddress);
+        const lower = walletAddress.toLowerCase();
+        // Query with OR to handle DB entries stored in different case (checksum vs lowercase)
         const readings = await prisma.meterReading.findMany({
-            where: { walletAddress },
+            where: {
+                OR: [
+                    { walletAddress: normalized },
+                    ...(normalized !== lower ? [{ walletAddress: lower }] : []),
+                ],
+            },
             orderBy: { timestamp: 'desc' },
             take: limit,
         });
@@ -34,8 +52,15 @@ export async function getRecentReadings(walletAddress: string, limit: number = 2
  */
 export async function getLiveStats(walletAddress: string) {
     try {
+        const normalized = normalizeAddress(walletAddress);
+        const lower = walletAddress.toLowerCase();
         const latestReading = await prisma.meterReading.findFirst({
-            where: { walletAddress },
+            where: {
+                OR: [
+                    { walletAddress: normalized },
+                    ...(normalized !== lower ? [{ walletAddress: lower }] : []),
+                ],
+            },
             orderBy: { timestamp: 'desc' },
         });
 
