@@ -3,7 +3,7 @@
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, ShieldCheck, Globe, ArrowRight, BarChart3, Radio, Wallet, ShoppingCart, BarChart, ChevronRight } from "lucide-react";
+import { Zap, ShieldCheck, Globe, ArrowRight, BarChart3, Radio, Wallet, ShoppingCart, BarChart } from "lucide-react";
 import Link from "next/link";
 
 type FlowStep =
@@ -73,13 +73,13 @@ export default function LandingPage() {
             </div>
 
             <h1 className="mx-auto mb-10 max-w-5xl text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl xl:text-9xl leading-[1.05]">
-              The Peer-to-Peer <br />
-              <span className="text-primary">Energy Commons</span>
+              Peer-to-Peer <br />
+              <span className="text-primary">Energy Trading Platform</span>
             </h1>
 
             <p className="mx-auto mb-12 max-w-2xl text-xl text-muted-foreground sm:text-2xl leading-relaxed">
-              A decentralized energy grid where smart households feed surplus solar
-              power directly to their neighbors. Transparent, trustless, and IoT-driven.
+              Solix is a decentralized energy marketplace where smart meters stream real-time
+              renewable energy data and blockchain smart contracts automate transparent peer-to-peer trading.
             </p>
 
             <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
@@ -202,9 +202,9 @@ export default function LandingPage() {
                 Start selling your surplus solar or buy green energy directly from your community.
                 The future is decentralized.
               </p>
-              <Button asChild size="lg" className="h-16 rounded-2xl bg-primary-foreground text-primary px-12 text-xl font-bold hover:opacity-90 clay">
+              <Button asChild size="lg" className="h-16 rounded-2xl bg-primary-foreground text-primary px-12 text-xl font-bold shadow-xl hover:bg-primary-foreground/95 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border-0">
                 <Link href="/dashboard" className="flex items-center gap-2">
-                  Connect Wallet Now <ChevronRight className="h-6 w-6" />
+                  Connect Wallet Now <ArrowRight className="h-6 w-6" />
                 </Link>
               </Button>
             </div>
